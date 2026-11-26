@@ -2090,7 +2090,7 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura exacta:
         throw new Error('Pega tu clave gratuita de Gemini en Ajustes (paso 1) para usar la IA en tu web.');
       }
 
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
       const parts = [{ text: promptText }, ...inlineParts];
 
       const response = await fetch(endpoint, {
