@@ -676,7 +676,7 @@
           </p>
         </div>
 
-        <!-- Step 1: Gemini API Key (Needed when hosted on Netlify/GitHub Pages) -->
+        <!-- Step 1: Gemini API Key (Needed when hosted on GitHub Pages/Netlify) -->
         <div class="bg-white border border-sand rounded-2xl p-4 space-y-2.5">
           <div class="flex items-center justify-between">
             <label class="text-xs font-bold text-espresso">1. Clave gratuita de IA (Gemini)</label>
@@ -690,7 +690,7 @@
           <input
             id="settingsGeminiKeyInput"
             type="password"
-            placeholder="AIzaSy..."
+            placeholder="AQ.Ab8... o AIzaSy..."
             class="w-full px-3.5 py-2 bg-alabaster border border-sand rounded-xl text-xs font-mono text-espresso focus:outline-none focus:border-terracotta"
           />
         </div>
@@ -741,7 +741,7 @@
             <span>3. Enviar acceso directo a tu novio</span>
           </h3>
           <p class="text-xs text-espresso/80 leading-relaxed">
-            Cuando tengas tu web publicada (por ejemplo en Netlify) y tus ajustes guardados, pulsa aquí para copiar un enlace mágico. Al abrirlo en su móvil, se vinculará solo a vuestro recetario:
+            Cuando tengas tu web publicada (por ejemplo en GitHub Pages) y tus ajustes guardados, pulsa aquí para copiar un enlace mágico. Al abrirlo en su móvil, se vinculará solo a vuestro recetario:
           </p>
           <button
             type="button"
@@ -749,6 +749,21 @@
             class="w-full py-2.5 px-4 rounded-xl bg-terracotta hover:bg-terracotta-dark text-white text-xs font-semibold shadow-xs transition-all active:scale-98"
           >
             Copiar enlace mágico para mi novio
+          </button>
+        </div>
+
+        <!-- Direct HTML App Download -->
+        <div class="bg-white border border-sand rounded-2xl p-4 flex items-center justify-between gap-2">
+          <div>
+            <p class="text-xs font-semibold text-espresso">Archivo web de la app</p>
+            <p class="text-[11px] text-stone">Descarga el archivo listo para subir a GitHub</p>
+          </div>
+          <button
+            type="button"
+            onclick="downloadHtmlFile()"
+            class="px-3.5 py-2 rounded-xl bg-sage hover:bg-sage-dark text-white text-xs font-semibold shrink-0 transition-colors"
+          >
+            Descargar index.html
           </button>
         </div>
 
@@ -803,13 +818,12 @@
       searchQuery: '',
       activeRecipeId: null,
       detailServings: 2,
-      pantryCheckedMap: {}, // { recipeId: { ingredientIndex: true } }
-      completedStepsMap: {}, // { recipeId: { stepIndex: true } }
-      healthyDraft: null, // Holds AI generated healthy version for active recipe
+      pantryCheckedMap: {},
+      completedStepsMap: {},
+      healthyDraft: null,
       showingHealthyVersion: false,
       healthyLoading: false,
 
-      // Import modal state
       importSource: 'Foto',
       selectedPhotoBase64: null,
       selectedPhotoMime: null,
@@ -817,8 +831,7 @@
       selectedVideoThumbBase64: null,
       reviewedDraft: null,
 
-      // Sync & backend state
-      mode: 'connecting', // 'builtin-cloud' | 'shared-cloud' | 'local'
+      mode: 'connecting',
       db: null,
       auth: null,
       user: null,
@@ -934,7 +947,6 @@
         }
       }
 
-      // Fallback: Local Device Storage (works immediately on Netlify even before Firebase setup)
       state.mode = 'local';
       updateSyncStatusUI(
         'En este móvil',
@@ -1914,7 +1926,6 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura exacta:
       });
     };
 
-    // Photo compression for fast AI & clean storage
     window.handlePhotoFileSelect = function (event) {
       const file = event.target.files?.[0];
       if (!file) return;
@@ -1955,7 +1966,6 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura exacta:
       document.getElementById('photoUploadPrompt').classList.remove('hidden');
     };
 
-    // Video thumbnail extraction & size check
     function extractVideoFrame(file) {
       return new Promise((resolve) => {
         const video = document.createElement('video');
@@ -2017,9 +2027,7 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura exacta:
       chevron.classList.toggle('rotate-180');
     };
 
-    // 3-Tier Web Content Extractor (Jina Reader + JSON-LD Schema.org/Recipe Proxies)
     async function extractWebRecipeContent(url) {
-      // Tier 1: r.jina.ai clean markdown
       try {
         const res = await fetch(`https://r.jina.ai/${url}`);
         if (res.ok) {
@@ -2030,7 +2038,6 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura exacta:
         }
       } catch (_) {}
 
-      // Tier 2 & 3: HTML Proxy + JSON-LD Schema.org/Recipe extraction
       const proxies = [
         (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
         (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`
@@ -2044,7 +2051,6 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura exacta:
           const parser = new DOMParser();
           const docHtml = parser.parseFromString(html, 'text/html');
 
-          // Look for Schema.org Recipe JSON-LD
           const scripts = Array.from(docHtml.querySelectorAll('script[type="application/ld+json"]'));
           for (const s of scripts) {
             try {
@@ -2080,7 +2086,6 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura exacta:
       });
     }
 
-    // Core Gemini Structured JSON Call
     async function callGeminiJson(promptText, inlineParts = []) {
       const isBuiltinEnv = typeof __firebase_config !== 'undefined' && __firebase_config;
       const apiKey = state.geminiKey || '';
@@ -2090,30 +2095,36 @@ Devuelve ÚNICAMENTE un JSON válido con esta estructura exacta:
         throw new Error('Pega tu clave gratuita de Gemini en Ajustes (paso 1) para usar la IA en tu web.');
       }
 
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
+      const modelsToTry = ['gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash-lite'];
       const parts = [{ text: promptText }, ...inlineParts];
+      let lastErrorMessage = '';
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts }],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            temperature: 0.2
-          }
-        })
-      });
+      for (const modelName of modelsToTry) {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts }],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              temperature: 0.2
+            }
+          })
+        });
 
-      if (!response.ok) {
+        if (response.ok) {
+          const data = await response.json();
+          const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          const cleanJson = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+          return JSON.parse(cleanJson);
+        }
+
         const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error?.message || `Error de IA (${response.status}). Revisa tu clave de Gemini.`);
+        lastErrorMessage = errData.error?.message || `Error de IA (${response.status}).`;
       }
 
-      const data = await response.json();
-      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      const cleanJson = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
-      return JSON.parse(cleanJson);
+      throw new Error(`${lastErrorMessage} Revisa tu clave gratuita de Gemini en Ajustes.`);
     }
 
     window.processRecipeWithAI = async function () {
@@ -2219,7 +2230,6 @@ Devuelve ÚNICAMENTE un objeto JSON válido en español con esta estructura exac
           createdAt: Date.now()
         };
 
-        // Populate Editable Review Form
         document.getElementById('revTitle').value = state.reviewedDraft.title;
         document.getElementById('revCategory').value = CATEGORIES.includes(state.reviewedDraft.category)
           ? state.reviewedDraft.category
@@ -2303,7 +2313,6 @@ Devuelve ÚNICAMENTE un objeto JSON válido en español con esta estructura exac
 
     function parseFirebaseSnippet(rawText) {
       if (!rawText || !rawText.trim()) return null;
-      // Extract keys robustly even if pasted as JS object literal without quoted keys
       const keys = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
       const extracted = {};
       for (const k of keys) {
@@ -2378,16 +2387,43 @@ Devuelve ÚNICAMENTE un objeto JSON válido en español con esta estructura exac
       reader.onload = async (e) => {
         try {
           const data = JSON.parse(e.target.result);
-          const list = Array.isArray(data) ? data : data.recipes || [];
-          for (const r of list) {
-            if (r.title) await saveRecipeRecord({ ...r, id: r.id || 'rec-' + Date.now() + Math.random() });
+          const importedRecipes = Array.isArray(data.recipes) ? data.recipes : [];
+          for (const rec of importedRecipes) {
+            if (rec.id && rec.title) await saveRecipeRecord(rec);
           }
-          showToast(`${list.length} recetas importadas correctamente`);
-        } catch {
-          showToast('Archivo JSON no válido');
+          const importedShop = Array.isArray(data.shoppingList) ? data.shoppingList : [];
+          for (const item of importedShop) {
+            if (item.id && item.text) await saveShoppingRecord(item);
+          }
+          showToast(`Importadas ${importedRecipes.length} recetas`);
+        } catch (err) {
+          showToast('El archivo JSON no es válido');
         }
       };
       reader.readAsText(file);
+    };
+
+    window.downloadHtmlFile = function () {
+      const clone = document.documentElement.cloneNode(true);
+      ['addRecipeModal', 'accountModal', 'toastBanner', 'viewDetail', 'viewShopping'].forEach(function (id) {
+        const el = clone.querySelector('#' + id);
+        if (el) el.classList.add('hidden');
+      });
+      const viewRecipes = clone.querySelector('#viewRecipes');
+      if (viewRecipes) viewRecipes.classList.remove('hidden');
+      ['recipesGrid', 'categoryChipsContainer', 'shoppingListContainer', 'viewDetail'].forEach(function (id) {
+        const el = clone.querySelector('#' + id);
+        if (el) el.innerHTML = '';
+      });
+      const htmlContent = '<!DOCTYPE html>\n' + clone.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'index.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('Descargando index.html...');
     };
 
     // -----------------------------------------------------------------------
