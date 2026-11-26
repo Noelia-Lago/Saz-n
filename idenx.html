@@ -1,0 +1,2420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Sazón" />
+  <meta name="theme-color" content="#FAF8F5" />
+  <title>Sazón — Recetario Inteligente Compartido</title>
+
+  <!-- Google Fonts: Fraunces (Editorial Serif) & Plus Jakarta Sans (Clean UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            alabaster: '#FAF8F5',
+            cream: '#F3EFEA',
+            sand: '#EAE4DC',
+            espresso: '#231F1D',
+            stone: '#756C65',
+            terracotta: {
+              DEFAULT: '#C85A32',
+              dark: '#A94724',
+              light: '#FDF1EC',
+              border: '#F2CFC2'
+            },
+            sage: {
+              DEFAULT: '#3D6B58',
+              dark: '#2E5243',
+              light: '#EEF4F1',
+              border: '#C6DDD3'
+            }
+          },
+          fontFamily: {
+            serif: ['Fraunces', 'Georgia', 'serif'],
+            sans: ['Plus Jakarta Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif']
+          },
+          boxShadow: {
+            card: '0 4px 20px -4px rgba(35, 31, 29, 0.05), 0 1px 3px rgba(35, 31, 29, 0.03)',
+            nav: '0 -6px 24px -4px rgba(35, 31, 29, 0.07)',
+            fab: '0 8px 20px -4px rgba(200, 90, 50, 0.45)'
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      background-color: #FAF8F5;
+      color: #231F1D;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .pb-safe {
+      padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+    }
+
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-fade-up {
+      animation: fadeSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-terracotta/20 selection:text-terracotta-dark">
+
+  <!-- ===================================================================== -->
+  <!-- TOP EDITORIAL HEADER                                                  -->
+  <!-- ===================================================================== -->
+  <header id="appHeader" class="sticky top-0 z-30 bg-alabaster/95 backdrop-blur-md border-b border-sand/80 transition-all">
+    <div class="max-w-4xl mx-auto px-4 pt-3.5 pb-3">
+      <div class="flex items-center justify-between gap-3">
+        <button onclick="navigateTo('recipes')" class="flex items-center gap-2.5 text-left group focus:outline-none">
+          <div class="w-9 h-9 rounded-2xl bg-terracotta text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2C7.5 2 4 5.5 4 10c0 3.5 2.2 6.5 5.5 7.5V22h5v-4.5c3.3-1 5.5-4 5.5-7.5 0-4.5-3.5-8-8-8z" />
+              <path d="M12 2v13" />
+              <path d="M12 8c2-1.5 3.5-1.5 5 0" />
+              <path d="M12 11c-2-1.5-3.5-1.5-5 0" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="font-serif text-xl sm:text-2xl font-semibold tracking-tight text-espresso leading-none">
+              Sazón
+            </h1>
+            <p class="text-[11px] font-medium text-stone tracking-wide mt-0.5">
+              Recetario Compartido
+            </p>
+          </div>
+        </button>
+
+        <!-- Cloud Sync & Partner Share Settings Pill -->
+        <button
+          id="accountBadgeBtn"
+          onclick="openAccountSettings()"
+          class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-sand hover:border-terracotta/40 text-xs font-medium text-espresso shadow-xs transition-all active:scale-95"
+          title="Sincronizar con tu pareja y configurar IA"
+        >
+          <span id="syncDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span id="syncLabel" class="truncate max-w-[140px] sm:max-w-[200px]">Conectando...</span>
+          <svg class="w-3.5 h-3.5 text-stone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Search & Category Filter Bar -->
+      <div id="recipesFilterHeader" class="mt-3 space-y-2.5">
+        <div class="relative">
+          <svg class="w-4 h-4 text-stone absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Buscar receta, ingrediente, etiqueta..."
+            oninput="handleSearchInput(this.value)"
+            class="w-full pl-10 pr-9 py-2.5 bg-white border border-sand rounded-2xl text-sm text-espresso placeholder:text-stone/70 focus:outline-none focus:border-terracotta focus:ring-2 focus:ring-terracotta/15 transition-all"
+          />
+          <button
+            id="clearSearchBtn"
+            onclick="clearSearch()"
+            class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-full text-stone hover:text-espresso hover:bg-cream"
+            aria-label="Limpiar búsqueda"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div id="categoryChipsContainer" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-0.5">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN CONTENT WORKSPACE                                                -->
+  <!-- ===================================================================== -->
+  <main class="flex-1 max-w-4xl w-full mx-auto px-4 pt-4 pb-28">
+
+    <!-- VIEW 1: RECIPES GALLERY -->
+    <section id="viewRecipes" class="space-y-4">
+      <div class="flex items-center justify-between text-xs text-stone px-0.5">
+        <span id="recipesCountText" class="font-medium">Cargando recetario...</span>
+        <button
+          id="resetFiltersBtn"
+          onclick="resetAllFilters()"
+          class="hidden text-terracotta font-semibold hover:underline"
+        >
+          Ver todas
+        </button>
+      </div>
+
+      <!-- Loading Skeletons -->
+      <div id="recipesLoading" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="bg-white border border-sand rounded-3xl p-4 space-y-3 animate-pulse">
+          <div class="h-36 bg-cream rounded-2xl"></div>
+          <div class="h-4 bg-cream rounded-full w-1/3"></div>
+          <div class="h-6 bg-cream rounded-full w-4/5"></div>
+          <div class="h-4 bg-cream rounded-full w-2/3"></div>
+        </div>
+        <div class="bg-white border border-sand rounded-3xl p-4 space-y-3 animate-pulse hidden sm:block">
+          <div class="h-36 bg-cream rounded-2xl"></div>
+          <div class="h-4 bg-cream rounded-full w-1/3"></div>
+          <div class="h-6 bg-cream rounded-full w-4/5"></div>
+          <div class="h-4 bg-cream rounded-full w-2/3"></div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="recipesEmptyState" class="hidden bg-white border border-sand rounded-3xl p-8 text-center shadow-card space-y-4">
+        <div class="w-16 h-16 mx-auto rounded-3xl bg-terracotta-light text-terracotta flex items-center justify-center">
+          <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            <path d="M12 7v6M9 10h6" />
+          </svg>
+        </div>
+        <div class="space-y-1.5 max-w-sm mx-auto">
+          <h2 id="emptyStateTitle" class="font-serif text-xl font-semibold text-espresso">
+            Vuestro recetario está listo
+          </h2>
+          <p id="emptyStateSubtitle" class="text-sm text-stone leading-relaxed">
+            Guarda recetas desde fotos, vídeos cortos, páginas web o notas. La IA las ordena y las sincroniza en vuestros móviles.
+          </p>
+        </div>
+        <div class="pt-1 flex flex-wrap items-center justify-center gap-2.5">
+          <button
+            onclick="openAddModal()"
+            class="px-5 py-2.5 rounded-2xl bg-terracotta hover:bg-terracotta-dark text-white text-sm font-semibold shadow-sm transition-all active:scale-95"
+          >
+            + Añadir primera receta
+          </button>
+          <button
+            id="restoreSamplesEmptyBtn"
+            onclick="seedSampleRecipes(true)"
+            class="px-4 py-2.5 rounded-2xl bg-cream hover:bg-sand/70 text-espresso text-sm font-medium transition-all"
+          >
+            Cargar 2 ejemplos
+          </button>
+        </div>
+      </div>
+
+      <!-- Recipes Grid -->
+      <div id="recipesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+    </section>
+
+    <!-- VIEW 2: RECIPE DETAIL & COOKING MODE -->
+    <section id="viewDetail" class="hidden space-y-5 animate-fade-up"></section>
+
+    <!-- VIEW 3: SHOPPING LIST -->
+    <section id="viewShopping" class="hidden space-y-4 animate-fade-up">
+      <div class="bg-white border border-sand rounded-3xl p-5 shadow-card space-y-4">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h2 class="font-serif text-2xl font-semibold text-espresso">Lista de la Compra</h2>
+            <p id="shoppingSummaryText" class="text-xs text-stone mt-0.5">
+              Ingredientes que faltan por comprar
+            </p>
+          </div>
+          <button
+            id="clearCheckedBtn"
+            onclick="clearCheckedShoppingItems()"
+            class="hidden px-3 py-1.5 rounded-xl bg-sage-light text-sage hover:bg-sage hover:text-white text-xs font-semibold transition-colors"
+          >
+            Limpiar marcados
+          </button>
+        </div>
+
+        <form onsubmit="handleAddManualShoppingItem(event)" class="flex gap-2">
+          <input
+            id="manualShoppingInput"
+            type="text"
+            placeholder="Añadir ingrediente suelto (ej. Huevos camperos)..."
+            class="flex-1 px-3.5 py-2.5 bg-alabaster border border-sand rounded-2xl text-sm text-espresso placeholder:text-stone/70 focus:outline-none focus:border-sage"
+          />
+          <button
+            type="submit"
+            class="px-4 py-2.5 rounded-2xl bg-sage hover:bg-sage-dark text-white text-sm font-semibold transition-all active:scale-95 shrink-0"
+          >
+            Añadir
+          </button>
+        </form>
+      </div>
+
+      <div id="shoppingListContainer" class="space-y-2.5"></div>
+    </section>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- FIXED BOTTOM NAVIGATION BAR                                           -->
+  <!-- ===================================================================== -->
+  <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-sand shadow-nav pb-safe">
+    <div class="max-w-md mx-auto px-6 h-16 flex items-center justify-between relative">
+      <button
+        id="navTabRecipes"
+        onclick="navigateTo('recipes')"
+        class="flex flex-col items-center justify-center gap-1 py-1 px-3 rounded-2xl text-terracotta font-semibold transition-colors"
+      >
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+        </svg>
+        <span class="text-[11px]">Recetas</span>
+      </button>
+
+      <div class="relative -top-4">
+        <button
+          onclick="openAddModal()"
+          class="flex items-center gap-1.5 px-5 py-3.5 rounded-full bg-terracotta hover:bg-terracotta-dark text-white font-semibold text-sm shadow-fab transition-all active:scale-95 focus:outline-none ring-4 ring-alabaster"
+          aria-label="Añadir nueva receta"
+        >
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          <span>Añadir</span>
+        </button>
+      </div>
+
+      <button
+        id="navTabShopping"
+        onclick="navigateTo('shopping')"
+        class="relative flex flex-col items-center justify-center gap-1 py-1 px-3 rounded-2xl text-stone hover:text-espresso font-medium transition-colors"
+      >
+        <div class="relative">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <path d="M16 10a4 4 0 0 1-8 0" />
+          </svg>
+          <span
+            id="shoppingBadgeCount"
+            class="hidden absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full bg-sage text-white text-[10px] font-bold flex items-center justify-center"
+          >
+            0
+          </span>
+        </div>
+        <span class="text-[11px]">Lista Compra</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 1: ADD / IMPORT RECIPE (Multimodal AI Capture)                  -->
+  <!-- ===================================================================== -->
+  <div id="addRecipeModal" class="hidden fixed inset-0 z-50 bg-espresso/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-alabaster w-full max-w-xl max-h-[92vh] rounded-t-3xl sm:rounded-3xl border border-sand shadow-2xl flex flex-col overflow-hidden animate-fade-up">
+      <div class="px-5 py-4 bg-white border-b border-sand flex items-center justify-between">
+        <div>
+          <h2 class="font-serif text-xl font-semibold text-espresso">Nueva Receta con IA</h2>
+          <p class="text-xs text-stone">Extrae, clasifica y ordena automáticamente</p>
+        </div>
+        <button
+          onclick="closeModal('addRecipeModal')"
+          class="p-2 rounded-full bg-cream hover:bg-sand text-espresso transition-colors"
+          aria-label="Cerrar"
+        >
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- 4 Source Selector Tabs -->
+      <div class="px-4 pt-3 pb-2 bg-white border-b border-sand/60">
+        <div class="grid grid-cols-4 gap-1.5 bg-cream p-1 rounded-2xl">
+          <button
+            id="srcTabFoto"
+            onclick="switchImportSource('Foto')"
+            class="src-tab flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 rounded-xl text-xs font-semibold bg-white text-terracotta shadow-xs transition-all"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+            <span>Foto</span>
+          </button>
+
+          <button
+            id="srcTabVideo"
+            onclick="switchImportSource('Vídeo')"
+            class="src-tab flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 rounded-xl text-xs font-medium text-stone hover:text-espresso transition-all"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="23 7 16 12 23 17 23 7" />
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+            </svg>
+            <span>Vídeo</span>
+          </button>
+
+          <button
+            id="srcTabWeb"
+            onclick="switchImportSource('Web')"
+            class="src-tab flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 rounded-xl text-xs font-medium text-stone hover:text-espresso transition-all"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="2" y1="12" x2="22" y2="12" />
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+            </svg>
+            <span>Web</span>
+          </button>
+
+          <button
+            id="srcTabTexto"
+            onclick="switchImportSource('Texto')"
+            class="src-tab flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 rounded-xl text-xs font-medium text-stone hover:text-espresso transition-all"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>
+            <span>Texto</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Scrollable Body -->
+      <div class="p-5 overflow-y-auto space-y-4 flex-1">
+        <!-- STEP 1: INPUT CAPTURE -->
+        <div id="importCaptureStep" class="space-y-4">
+          <!-- PANEL 1: FOTO -->
+          <div id="panelFoto" class="source-panel space-y-3">
+            <div class="bg-white border-2 border-dashed border-sand hover:border-terracotta/50 rounded-3xl p-5 text-center transition-colors">
+              <div id="photoPreviewWrapper" class="hidden mb-3 relative">
+                <img id="photoPreviewImg" src="" alt="Vista previa" class="max-h-56 mx-auto rounded-2xl object-contain border border-sand" />
+                <button type="button" onclick="clearSelectedPhoto()" class="mt-2 text-xs text-terracotta font-semibold hover:underline">
+                  Cambiar imagen
+                </button>
+              </div>
+
+              <div id="photoUploadPrompt" class="space-y-3">
+                <div class="w-12 h-12 mx-auto rounded-2xl bg-terracotta-light text-terracotta flex items-center justify-center">
+                  <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-espresso">Haz una foto o sube una captura</p>
+                  <p class="text-xs text-stone mt-0.5">Ideal para libros, revistas, apuntes o capturas de móvil</p>
+                </div>
+                <div class="flex flex-wrap justify-center gap-2 pt-1">
+                  <label class="cursor-pointer px-4 py-2.5 rounded-2xl bg-terracotta text-white text-xs font-semibold hover:bg-terracotta-dark transition-all active:scale-95">
+                    <span>Usar Cámara</span>
+                    <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handlePhotoFileSelect(event)" />
+                  </label>
+                  <label class="cursor-pointer px-4 py-2.5 rounded-2xl bg-cream text-espresso text-xs font-semibold hover:bg-sand transition-all active:scale-95">
+                    <span>Galería</span>
+                    <input type="file" accept="image/*" class="hidden" onchange="handlePhotoFileSelect(event)" />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-stone mb-1">Nota adicional opcional</label>
+              <input
+                id="photoExtraNote"
+                type="text"
+                placeholder="Ej. Para 4 comensales, versión sin lactosa..."
+                class="w-full px-3.5 py-2.5 bg-white border border-sand rounded-2xl text-sm focus:outline-none focus:border-terracotta"
+              />
+            </div>
+          </div>
+
+          <!-- PANEL 2: VÍDEO -->
+          <div id="panelVideo" class="source-panel hidden space-y-3">
+            <div class="bg-white border-2 border-dashed border-sand hover:border-terracotta/50 rounded-3xl p-4 text-center transition-colors">
+              <div id="videoPreviewWrapper" class="hidden mb-2 space-y-2">
+                <div class="relative inline-block">
+                  <img id="videoThumbImg" src="" alt="Fotograma" class="max-h-44 mx-auto rounded-2xl object-cover border border-sand" />
+                  <span class="absolute bottom-2 right-2 px-2 py-0.5 rounded-lg bg-espresso/80 text-white text-[10px] font-semibold">
+                    Portada extraída
+                  </span>
+                </div>
+                <p id="videoFileInfo" class="text-xs font-medium text-espresso"></p>
+                <button type="button" onclick="clearSelectedVideo()" class="text-xs text-terracotta font-semibold hover:underline">
+                  Quitar vídeo
+                </button>
+              </div>
+
+              <div id="videoUploadPrompt" class="space-y-2.5 py-2">
+                <div class="w-12 h-12 mx-auto rounded-2xl bg-terracotta-light text-terracotta flex items-center justify-center">
+                  <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="23 7 16 12 23 17 23 7" />
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-espresso">Sube un vídeo corto de receta</p>
+                  <p class="text-xs text-stone mt-0.5">La IA transcribe el audio y textos en pantalla (máx. ~20 MB)</p>
+                </div>
+                <label class="inline-block cursor-pointer px-4 py-2.5 rounded-2xl bg-terracotta text-white text-xs font-semibold hover:bg-terracotta-dark transition-all active:scale-95">
+                  <span>Seleccionar Vídeo</span>
+                  <input type="file" accept="video/*" class="hidden" onchange="handleVideoFileSelect(event)" />
+                </label>
+              </div>
+            </div>
+
+            <div id="videoSizeWarning" class="hidden p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs leading-relaxed">
+              <strong>Vídeo pesado (&gt;20 MB):</strong> Para evitar que el móvil se quede sin memoria, pega abajo la descripción o subtítulos del vídeo.
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-stone mb-1">
+                Descripción, subtítulos o enlace del vídeo (TikTok, Reels, YouTube)
+              </label>
+              <textarea
+                id="videoDescriptionInput"
+                rows="3"
+                placeholder="Pega aquí la descripción del vídeo o lo que explica el cocinero..."
+                class="w-full px-3.5 py-2.5 bg-white border border-sand rounded-2xl text-sm focus:outline-none focus:border-terracotta"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- PANEL 3: WEB -->
+          <div id="panelWeb" class="source-panel hidden space-y-3">
+            <div class="bg-white border border-sand rounded-3xl p-4 space-y-3">
+              <div>
+                <label class="block text-xs font-semibold text-espresso mb-1.5">
+                  Enlace (URL) de la página web
+                </label>
+                <input
+                  id="webUrlInput"
+                  type="url"
+                  placeholder="https://www.ejemplo.com/receta-favorita"
+                  class="w-full px-3.5 py-2.5 bg-alabaster border border-sand rounded-2xl text-sm text-espresso focus:outline-none focus:border-terracotta"
+                />
+              </div>
+              <p class="text-xs text-stone leading-relaxed">
+                Limpiamos anuncios y textos largos para quedarnos solo con los ingredientes y pasos exactos.
+              </p>
+            </div>
+
+            <div class="bg-white border border-sand rounded-3xl overflow-hidden">
+              <button
+                type="button"
+                onclick="toggleWebManualFallback()"
+                class="w-full px-4 py-3 flex items-center justify-between text-left text-xs font-semibold text-espresso hover:bg-cream/50 transition-colors"
+              >
+                <span>¿La web bloquea el acceso? Pegar texto manualmente</span>
+                <svg id="webFallbackChevron" class="w-4 h-4 text-stone transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+              <div id="webManualFallbackBox" class="hidden px-4 pb-4 space-y-2 border-t border-sand/60 pt-3">
+                <p id="webFallbackNotice" class="text-xs text-stone">
+                  Copia el texto de la web y pégalo aquí debajo:
+                </p>
+                <textarea
+                  id="webManualTextInput"
+                  rows="4"
+                  placeholder="Pega aquí el contenido copiado de la página..."
+                  class="w-full px-3.5 py-2.5 bg-alabaster border border-sand rounded-2xl text-sm focus:outline-none focus:border-terracotta"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANEL 4: TEXTO -->
+          <div id="panelTexto" class="source-panel hidden space-y-3">
+            <div class="bg-white border border-sand rounded-3xl p-4 space-y-2">
+              <label class="block text-xs font-semibold text-espresso">
+                Pega una receta o escribe tus notas rápidas
+              </label>
+              <textarea
+                id="plainTextInput"
+                rows="6"
+                placeholder="Ej: Pollo al curry rápido. Pechuga de pollo 400g, leche de coco 200ml, curry en polvo 2 cucharaditas, cebolla, ajo..."
+                class="w-full px-3.5 py-2.5 bg-alabaster border border-sand rounded-2xl text-sm text-espresso focus:outline-none focus:border-terracotta"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Error / Status Box -->
+          <div id="importErrorBox" class="hidden p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-xs leading-relaxed"></div>
+
+          <!-- Extract Action Button -->
+          <button
+            id="runAiExtractBtn"
+            onclick="processRecipeWithAI()"
+            class="w-full py-3.5 px-5 rounded-2xl bg-terracotta hover:bg-terracotta-dark text-white font-semibold text-sm shadow-sm flex items-center justify-center gap-2 transition-all active:scale-98"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+            </svg>
+            <span id="runAiExtractBtnText">Transcribir y ordenar con IA</span>
+          </button>
+        </div>
+
+        <!-- STEP 2: EDITABLE REVIEW BEFORE SAVING -->
+        <div id="importReviewStep" class="hidden space-y-4">
+          <div class="p-3 rounded-2xl bg-sage-light border border-sage-border text-sage-dark text-xs font-medium flex items-center justify-between">
+            <span>¡Receta transcrita! Revisa los datos antes de guardarla:</span>
+            <button type="button" onclick="backToCaptureStep()" class="underline font-semibold ml-2">Volver</button>
+          </div>
+
+          <div class="bg-white border border-sand rounded-3xl p-4 space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-stone mb-1">Título de la receta</label>
+              <input id="revTitle" type="text" class="w-full px-3.5 py-2 bg-alabaster border border-sand rounded-xl text-sm font-semibold text-espresso" />
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              <div>
+                <label class="block text-xs font-semibold text-stone mb-1">Categoría</label>
+                <select id="revCategory" class="w-full px-3 py-2 bg-alabaster border border-sand rounded-xl text-sm text-espresso">
+                  <option value="Comidas">Comidas</option>
+                  <option value="Cenas">Cenas</option>
+                  <option value="Desayunos">Desayunos</option>
+                  <option value="Postres">Postres</option>
+                  <option value="Snacks">Snacks</option>
+                  <option value="Bebidas">Bebidas</option>
+                  <option value="Saludable">Saludable</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-stone mb-1">Comensales</label>
+                <input id="revServings" type="number" min="1" max="50" value="2" class="w-full px-3 py-2 bg-alabaster border border-sand rounded-xl text-sm text-espresso" />
+              </div>
+              <div class="col-span-2 sm:col-span-1">
+                <label class="block text-xs font-semibold text-stone mb-1">Tiempo total</label>
+                <input id="revTime" type="text" placeholder="30 min" class="w-full px-3 py-2 bg-alabaster border border-sand rounded-xl text-sm text-espresso" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-stone mb-1">Ingredientes (uno por línea)</label>
+              <textarea id="revIngredients" rows="5" class="w-full px-3.5 py-2 bg-alabaster border border-sand rounded-xl text-xs font-mono text-espresso leading-relaxed"></textarea>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-stone mb-1">Pasos de preparación (uno por línea)</label>
+              <textarea id="revSteps" rows="5" class="w-full px-3.5 py-2 bg-alabaster border border-sand rounded-xl text-xs text-espresso leading-relaxed"></textarea>
+            </div>
+          </div>
+
+          <button
+            onclick="confirmAndSaveReviewedRecipe()"
+            class="w-full py-3.5 px-5 rounded-2xl bg-sage hover:bg-sage-dark text-white font-semibold text-sm shadow-sm transition-all active:scale-98"
+          >
+            Guardar en nuestro recetario
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 2: PARTNER SYNC, CLOUD & AI KEY SETTINGS                        -->
+  <!-- ===================================================================== -->
+  <div id="accountModal" class="hidden fixed inset-0 z-50 bg-espresso/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-alabaster w-full max-w-lg max-h-[92vh] rounded-t-3xl sm:rounded-3xl border border-sand shadow-2xl flex flex-col overflow-hidden animate-fade-up">
+      <div class="px-5 py-4 bg-white border-b border-sand flex items-center justify-between">
+        <div>
+          <h2 class="font-serif text-xl font-semibold text-espresso">Compartir y Ajustes</h2>
+          <p class="text-xs text-stone">Sincroniza vuestros móviles y configura la IA</p>
+        </div>
+        <button
+          onclick="closeModal('accountModal')"
+          class="p-2 rounded-full bg-cream hover:bg-sand text-espresso transition-colors"
+        >
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-4 flex-1 text-sm">
+        <!-- Current Sync Status Card -->
+        <div class="bg-white border border-sand rounded-2xl p-4 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-stone">Estado actual</span>
+            <span id="modalSyncPill" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sage-light text-sage">
+              Conectado
+            </span>
+          </div>
+          <p id="modalSyncDescription" class="text-xs text-espresso leading-relaxed">
+            Conectado a la nube. Todas las recetas y la lista de la compra se guardan automáticamente.
+          </p>
+        </div>
+
+        <!-- Step 1: Gemini API Key (Needed when hosted on Netlify/GitHub Pages) -->
+        <div class="bg-white border border-sand rounded-2xl p-4 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-espresso">1. Clave gratuita de IA (Gemini)</label>
+            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" class="text-xs font-semibold text-terracotta hover:underline">
+              Obtener gratis ↗
+            </a>
+          </div>
+          <p class="text-xs text-stone leading-relaxed">
+            Necesaria para leer fotos, vídeos y webs cuando alojes esta web fuera del chat.
+          </p>
+          <input
+            id="settingsGeminiKeyInput"
+            type="password"
+            placeholder="AIzaSy..."
+            class="w-full px-3.5 py-2 bg-alabaster border border-sand rounded-xl text-xs font-mono text-espresso focus:outline-none focus:border-terracotta"
+          />
+        </div>
+
+        <!-- Step 2: Shared Couple Cloud (Firebase) -->
+        <div class="bg-white border border-sand rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-espresso">2. Nube compartida para 2 móviles (Firebase)</label>
+            <a href="https://console.firebase.google.com/" target="_blank" rel="noopener" class="text-xs font-semibold text-terracotta hover:underline">
+              Firebase gratis ↗
+            </a>
+          </div>
+          <p class="text-xs text-stone leading-relaxed">
+            Pega aquí el bloque <code class="bg-cream px-1 rounded">firebaseConfig</code> de tu proyecto gratuito de Firebase para que tú y tu novio veáis las mismas recetas al instante:
+          </p>
+          <textarea
+            id="settingsFirebaseConfigInput"
+            rows="4"
+            placeholder='const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "..." };'
+            class="w-full px-3 py-2 bg-alabaster border border-sand rounded-xl text-[11px] font-mono text-espresso focus:outline-none focus:border-terracotta"
+          ></textarea>
+
+          <div>
+            <label class="block text-xs font-semibold text-stone mb-1">Código de vuestro recetario compartido</label>
+            <input
+              id="settingsBookCodeInput"
+              type="text"
+              placeholder="sazon-nuestro-hogar"
+              class="w-full px-3.5 py-2 bg-alabaster border border-sand rounded-xl text-xs font-mono text-espresso focus:outline-none focus:border-terracotta"
+            />
+          </div>
+
+          <button
+            type="button"
+            onclick="saveExternalCloudSettings()"
+            class="w-full py-2.5 px-4 rounded-xl bg-espresso hover:bg-espresso/90 text-white text-xs font-semibold transition-all active:scale-98"
+          >
+            Guardar ajustes y conectar nube
+          </button>
+        </div>
+
+        <!-- Step 3: 1-Click Magic Partner Invite Link -->
+        <div class="bg-terracotta-light/70 border border-terracotta-border rounded-2xl p-4 space-y-2.5">
+          <h3 class="text-xs font-bold text-terracotta-dark flex items-center gap-1.5">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+            <span>3. Enviar acceso directo a tu novio</span>
+          </h3>
+          <p class="text-xs text-espresso/80 leading-relaxed">
+            Cuando tengas tu web publicada (por ejemplo en Netlify) y tus ajustes guardados, pulsa aquí para copiar un enlace mágico. Al abrirlo en su móvil, se vinculará solo a vuestro recetario:
+          </p>
+          <button
+            type="button"
+            onclick="copyPartnerInviteLink()"
+            class="w-full py-2.5 px-4 rounded-xl bg-terracotta hover:bg-terracotta-dark text-white text-xs font-semibold shadow-xs transition-all active:scale-98"
+          >
+            Copiar enlace mágico para mi novio
+          </button>
+        </div>
+
+        <!-- Backup Export / Import -->
+        <div class="bg-white border border-sand rounded-2xl p-4 flex items-center justify-between gap-2">
+          <div>
+            <p class="text-xs font-semibold text-espresso">Copia de seguridad</p>
+            <p class="text-[11px] text-stone">Exporta o importa tus recetas en JSON</p>
+          </div>
+          <div class="flex gap-2">
+            <button type="button" onclick="exportRecipesJson()" class="px-3 py-1.5 rounded-xl bg-cream hover:bg-sand text-xs font-semibold text-espresso">
+              Exportar
+            </button>
+            <label class="cursor-pointer px-3 py-1.5 rounded-xl bg-cream hover:bg-sand text-xs font-semibold text-espresso">
+              <span>Importar</span>
+              <input type="file" accept=".json" class="hidden" onchange="importRecipesJson(event)" />
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastBanner" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-2xl bg-espresso text-white text-xs font-medium shadow-xl max-w-[90vw] text-center animate-fade-up"></div>
+
+  <!-- ===================================================================== -->
+  <!-- APPLICATION LOGIC (Firebase Shared Cloud + LocalStorage + Gemini AI)  -->
+  <!-- ===================================================================== -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+    // -----------------------------------------------------------------------
+    // STATE & CONFIGURATION
+    // -----------------------------------------------------------------------
+    const CATEGORIES = ['Todas', 'Favoritas', 'Desayunos', 'Comidas', 'Cenas', 'Postres', 'Snacks', 'Bebidas', 'Saludable'];
+
+    const STORAGE_KEYS = {
+      GEMINI_KEY: 'sazon_gemini_api_key',
+      FIREBASE_CFG: 'sazon_custom_firebase_cfg',
+      BOOK_CODE: 'sazon_shared_book_code',
+      LOCAL_RECIPES: 'sazon_local_recipes_v1',
+      LOCAL_SHOPPING: 'sazon_local_shopping_v1'
+    };
+
+    const state = {
+      recipes: [],
+      shoppingList: [],
+      selectedCategory: 'Todas',
+      searchQuery: '',
+      activeRecipeId: null,
+      detailServings: 2,
+      pantryCheckedMap: {}, // { recipeId: { ingredientIndex: true } }
+      completedStepsMap: {}, // { recipeId: { stepIndex: true } }
+      healthyDraft: null, // Holds AI generated healthy version for active recipe
+      showingHealthyVersion: false,
+      healthyLoading: false,
+
+      // Import modal state
+      importSource: 'Foto',
+      selectedPhotoBase64: null,
+      selectedPhotoMime: null,
+      selectedVideoFile: null,
+      selectedVideoThumbBase64: null,
+      reviewedDraft: null,
+
+      // Sync & backend state
+      mode: 'connecting', // 'builtin-cloud' | 'shared-cloud' | 'local'
+      db: null,
+      auth: null,
+      user: null,
+      appId: 'sazon-app',
+      bookCode: localStorage.getItem(STORAGE_KEYS.BOOK_CODE) || generateDefaultBookCode(),
+      geminiKey: localStorage.getItem(STORAGE_KEYS.GEMINI_KEY) || '',
+      customFirebaseConfig: safeJsonParse(localStorage.getItem(STORAGE_KEYS.FIREBASE_CFG)),
+      unsubRecipes: null,
+      unsubShopping: null
+    };
+
+    function generateDefaultBookCode() {
+      const code = 'sazon-' + Math.random().toString(36).substring(2, 7);
+      localStorage.setItem(STORAGE_KEYS.BOOK_CODE, code);
+      return code;
+    }
+
+    function safeJsonParse(str) {
+      if (!str) return null;
+      try { return JSON.parse(str); } catch { return null; }
+    }
+
+    // -----------------------------------------------------------------------
+    // 1. CHECK FOR MAGIC PARTNER INVITE LINK (#pareja=...)
+    // -----------------------------------------------------------------------
+    function checkPartnerInviteHash() {
+      try {
+        const hash = window.location.hash || '';
+        if (hash.startsWith('#pareja=')) {
+          const encoded = decodeURIComponent(hash.replace('#pareja=', ''));
+          const payload = JSON.parse(decodeURIComponent(escape(atob(encoded))));
+          if (payload.geminiKey) {
+            state.geminiKey = payload.geminiKey;
+            localStorage.setItem(STORAGE_KEYS.GEMINI_KEY, payload.geminiKey);
+          }
+          if (payload.bookCode) {
+            state.bookCode = payload.bookCode;
+            localStorage.setItem(STORAGE_KEYS.BOOK_CODE, payload.bookCode);
+          }
+          if (payload.firebaseConfig && payload.firebaseConfig.projectId) {
+            state.customFirebaseConfig = payload.firebaseConfig;
+            localStorage.setItem(STORAGE_KEYS.FIREBASE_CFG, JSON.stringify(payload.firebaseConfig));
+          }
+          history.replaceState(null, '', window.location.pathname + window.location.search);
+          setTimeout(() => showToast('¡Enlace de pareja vinculado! Ya veis el mismo recetario.'), 600);
+        }
+      } catch (e) {
+        console.warn('No se pudo leer el enlace de invitación:', e);
+      }
+    }
+
+    // -----------------------------------------------------------------------
+    // 2. INITIALIZE STORAGE (Built-in Cloud, Shared Partner Cloud, or Local)
+    // -----------------------------------------------------------------------
+    async function initStorageEngine() {
+      checkPartnerInviteHash();
+
+      const hasBuiltinFirebase = typeof __firebase_config !== 'undefined' && __firebase_config;
+      const hasCustomFirebase = state.customFirebaseConfig && state.customFirebaseConfig.apiKey && state.customFirebaseConfig.projectId;
+
+      if (hasBuiltinFirebase) {
+        try {
+          const cfg = JSON.parse(__firebase_config);
+          state.appId = typeof __app_id !== 'undefined' ? __app_id : 'sazon-default';
+          const app = initializeApp(cfg);
+          state.auth = getAuth(app);
+          state.db = getFirestore(app);
+          state.mode = 'builtin-cloud';
+
+          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            await signInWithCustomToken(state.auth, __initial_auth_token);
+          } else {
+            await signInAnonymously(state.auth);
+          }
+
+          onAuthStateChanged(state.auth, (user) => {
+            if (user) {
+              state.user = user;
+              updateSyncStatusUI('Nube activa', 'bg-sage', 'Conectado a la nube interna de este entorno.');
+              attachFirestoreListeners(`artifacts/${state.appId}/users/${user.uid}`);
+            }
+          });
+          return;
+        } catch (err) {
+          console.warn('Fallback a modo local:', err);
+        }
+      }
+
+      if (hasCustomFirebase) {
+        try {
+          const app = initializeApp(state.customFirebaseConfig, 'sazon-shared-' + Date.now());
+          state.auth = getAuth(app);
+          state.db = getFirestore(app);
+          state.appId = state.customFirebaseConfig.projectId;
+          state.mode = 'shared-cloud';
+
+          await signInAnonymously(state.auth);
+          onAuthStateChanged(state.auth, (user) => {
+            if (user) {
+              state.user = user;
+              updateSyncStatusUI(
+                `Pareja · ${state.bookCode}`,
+                'bg-sage',
+                `Sincronizado en tiempo real con el código "${state.bookCode}". Tú y tu novio veis las mismas recetas y lista de la compra.`
+              );
+              attachFirestoreListeners(`artifacts/${state.appId}/public/data/shared_books/${state.bookCode}`);
+            }
+          });
+          return;
+        } catch (err) {
+          console.error('Error conectando Firebase compartido:', err);
+          showToast('Error al conectar Firebase. Revisa las reglas de Firestore.');
+        }
+      }
+
+      // Fallback: Local Device Storage (works immediately on Netlify even before Firebase setup)
+      state.mode = 'local';
+      updateSyncStatusUI(
+        'En este móvil',
+        'bg-amber-500',
+        'Guardado en la memoria de este teléfono. Para compartirlo en vivo con tu novio, conecta Firebase gratis en el paso 2.'
+      );
+      loadFromLocalStorage();
+    }
+
+    function updateSyncStatusUI(label, dotClass, description) {
+      document.getElementById('syncLabel').textContent = label;
+      const dot = document.getElementById('syncDot');
+      dot.className = `w-2 h-2 rounded-full ${dotClass}`;
+      document.getElementById('modalSyncPill').textContent = label;
+      document.getElementById('modalSyncDescription').textContent = description;
+    }
+
+    function attachFirestoreListeners(basePath) {
+      if (state.unsubRecipes) state.unsubRecipes();
+      if (state.unsubShopping) state.unsubShopping();
+
+      const recipesCol = collection(state.db, `${basePath}/recipes`);
+      const shoppingCol = collection(state.db, `${basePath}/shopping`);
+
+      let initialLoaded = false;
+
+      state.unsubRecipes = onSnapshot(recipesCol, (snapshot) => {
+        const list = [];
+        snapshot.forEach((docSnap) => {
+          list.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        state.recipes = list;
+
+        if (!initialLoaded && list.length === 0) {
+          initialLoaded = true;
+          seedSampleRecipes(false);
+        } else {
+          initialLoaded = true;
+        }
+
+        document.getElementById('recipesLoading').classList.add('hidden');
+        renderCategoryChips();
+        renderRecipesGrid();
+        if (state.activeRecipeId) renderRecipeDetail(state.activeRecipeId);
+      }, (err) => {
+        console.error('Error leyendo recetas:', err);
+        document.getElementById('recipesLoading').classList.add('hidden');
+        loadFromLocalStorage();
+      });
+
+      state.unsubShopping = onSnapshot(shoppingCol, (snapshot) => {
+        const items = [];
+        snapshot.forEach((docSnap) => {
+          items.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        items.sort((a, b) => (a.checked === b.checked ? (b.createdAt || 0) - (a.createdAt || 0) : a.checked ? 1 : -1));
+        state.shoppingList = items;
+        renderShoppingList();
+      });
+    }
+
+    function loadFromLocalStorage() {
+      document.getElementById('recipesLoading').classList.add('hidden');
+      const savedRecipes = safeJsonParse(localStorage.getItem(STORAGE_KEYS.LOCAL_RECIPES));
+      const savedShopping = safeJsonParse(localStorage.getItem(STORAGE_KEYS.LOCAL_SHOPPING));
+
+      if (Array.isArray(savedRecipes)) {
+        state.recipes = savedRecipes;
+      } else {
+        seedSampleRecipes(false);
+      }
+
+      state.shoppingList = Array.isArray(savedShopping) ? savedShopping : [];
+      renderCategoryChips();
+      renderRecipesGrid();
+      renderShoppingList();
+    }
+
+    function persistLocalFallback() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.LOCAL_RECIPES, JSON.stringify(state.recipes));
+        localStorage.setItem(STORAGE_KEYS.LOCAL_SHOPPING, JSON.stringify(state.shoppingList));
+      } catch (e) {
+        console.warn('Espacio local lleno:', e);
+      }
+    }
+
+    function getActiveBasePath() {
+      if (state.mode === 'builtin-cloud' && state.user) {
+        return `artifacts/${state.appId}/users/${state.user.uid}`;
+      }
+      if (state.mode === 'shared-cloud' && state.user) {
+        return `artifacts/${state.appId}/public/data/shared_books/${state.bookCode}`;
+      }
+      return null;
+    }
+
+    async function saveRecipeRecord(recipe) {
+      const basePath = getActiveBasePath();
+      if (basePath && state.db) {
+        await setDoc(doc(state.db, `${basePath}/recipes/${recipe.id}`), recipe);
+      } else {
+        const idx = state.recipes.findIndex((r) => r.id === recipe.id);
+        if (idx >= 0) state.recipes[idx] = recipe;
+        else state.recipes.unshift(recipe);
+        persistLocalFallback();
+        renderCategoryChips();
+        renderRecipesGrid();
+        if (state.activeRecipeId === recipe.id) renderRecipeDetail(recipe.id);
+      }
+    }
+
+    async function deleteRecipeRecord(recipeId) {
+      const basePath = getActiveBasePath();
+      if (basePath && state.db) {
+        await deleteDoc(doc(state.db, `${basePath}/recipes/${recipeId}`));
+      } else {
+        state.recipes = state.recipes.filter((r) => r.id !== recipeId);
+        persistLocalFallback();
+        renderCategoryChips();
+        renderRecipesGrid();
+      }
+    }
+
+    async function saveShoppingRecord(item) {
+      const basePath = getActiveBasePath();
+      if (basePath && state.db) {
+        await setDoc(doc(state.db, `${basePath}/shopping/${item.id}`), item);
+      } else {
+        const idx = state.shoppingList.findIndex((i) => i.id === item.id);
+        if (idx >= 0) state.shoppingList[idx] = item;
+        else state.shoppingList.unshift(item);
+        persistLocalFallback();
+        renderShoppingList();
+      }
+    }
+
+    async function deleteShoppingRecord(itemId) {
+      const basePath = getActiveBasePath();
+      if (basePath && state.db) {
+        await deleteDoc(doc(state.db, `${basePath}/shopping/${itemId}`));
+      } else {
+        state.shoppingList = state.shoppingList.filter((i) => i.id !== itemId);
+        persistLocalFallback();
+        renderShoppingList();
+      }
+    }
+
+    // -----------------------------------------------------------------------
+    // 3. SAMPLE STARTER RECIPES
+    // -----------------------------------------------------------------------
+    window.seedSampleRecipes = async function (notify = true) {
+      const samples = [
+        {
+          id: 'sample-shakshuka',
+          title: 'Shakshuka Mediterránea con Queso Feta',
+          category: 'Desayunos',
+          prepTime: '10 min',
+          cookTime: '15 min',
+          totalTime: '25 min',
+          servings: 2,
+          favorite: true,
+          sourceType: 'Ejemplo',
+          calories: 340,
+          protein: 19,
+          carbs: 18,
+          fats: 21,
+          tags: ['Vegetariano', 'Sartén única', 'Brunch'],
+          ingredients: [
+            { amount: 4, unit: 'uds', name: 'Huevos camperos' },
+            { amount: 400, unit: 'g', name: 'Tomate triturado natural' },
+            { amount: 1, unit: 'ud', name: 'Pimiento rojo asado o fresco' },
+            { amount: 0.5, unit: 'ud', name: 'Cebolla morada picada' },
+            { amount: 60, unit: 'g', name: 'Queso feta desmenuzado' },
+            { amount: 1, unit: 'cdta', name: 'Comino molido y pimentón dulce' },
+            { amount: 2, unit: 'cdas', name: 'Aceite de oliva virgen extra' }
+          ],
+          steps: [
+            'Sofríe la cebolla morada y el pimiento rojo picados en una sartén con el aceite de oliva durante 6 minutos hasta que estén tiernos.',
+            'Añade el comino, el pimentón y el tomate triturado. Cocina a fuego medio 8 minutos hasta que la salsa espese ligeramente.',
+            'Haz 4 huecos en la salsa con una cuchara y casca un huevo en cada hueco. Tapa la sartén 5 minutos hasta que las claras cuajen.',
+            'Reparte el queso feta por encima, añade cilantro o perejil fresco y sirve directamente en la sartén.'
+          ],
+          createdAt: Date.now()
+        },
+        {
+          id: 'sample-salmon-miso',
+          title: 'Salmón Glaseado con Miel y Sésamo',
+          category: 'Cenas',
+          prepTime: '10 min',
+          cookTime: '12 min',
+          totalTime: '22 min',
+          servings: 2,
+          favorite: false,
+          sourceType: 'Ejemplo',
+          calories: 465,
+          protein: 34,
+          carbs: 16,
+          fats: 28,
+          tags: ['Rápida', 'Rica en Omega-3', 'Sin gluten'],
+          ingredients: [
+            { amount: 2, unit: 'lomos', name: 'Salmón fresco sin espinas' },
+            { amount: 2, unit: 'cdas', name: 'Salsa de soja o tamari' },
+            { amount: 1, unit: 'cda', name: 'Miel cruda o sirope de arce' },
+            { amount: 1, unit: 'diente', name: 'Ajo rallado y jengibre fresco' },
+            { amount: 1, unit: 'cda', name: 'Semillas de sésamo tostado' },
+            { amount: 150, unit: 'g', name: 'Arroz jazmín o brócoli al vapor' }
+          ],
+          steps: [
+            'Mezcla en un cuenco la salsa de soja, la miel, el ajo rallado y el jengibre hasta integrar el glaseado.',
+            'Marca los lomos de salmón en una sartén antiadherente o Air Fryer (190 °C) durante 4 minutos.',
+            'Vierte el glaseado por encima y cocina 4-5 minutos más bañando el salmón hasta que caramelice.',
+            'Espolvorea las semillas de sésamo tostado y acompaña con arroz jazmín o verduras al vapor.'
+          ],
+          createdAt: Date.now() - 1000
+        }
+      ];
+
+      for (const item of samples) {
+        await saveRecipeRecord(item);
+      }
+      if (notify) showToast('2 recetas de ejemplo añadidas');
+    };
+
+    // -----------------------------------------------------------------------
+    // 4. NAVIGATION & GALLERY RENDERING
+    // -----------------------------------------------------------------------
+    window.navigateTo = function (viewName) {
+      state.activeRecipeId = null;
+      document.getElementById('viewRecipes').classList.toggle('hidden', viewName !== 'recipes');
+      document.getElementById('viewDetail').classList.add('hidden');
+      document.getElementById('viewShopping').classList.toggle('hidden', viewName !== 'shopping');
+      document.getElementById('recipesFilterHeader').classList.toggle('hidden', viewName !== 'recipes');
+
+      const tabRecipes = document.getElementById('navTabRecipes');
+      const tabShopping = document.getElementById('navTabShopping');
+
+      if (viewName === 'recipes') {
+        tabRecipes.className = 'flex flex-col items-center justify-center gap-1 py-1 px-3 rounded-2xl text-terracotta font-semibold transition-colors';
+        tabShopping.className = 'relative flex flex-col items-center justify-center gap-1 py-1 px-3 rounded-2xl text-stone hover:text-espresso font-medium transition-colors';
+      } else {
+        tabRecipes.className = 'flex flex-col items-center justify-center gap-1 py-1 px-3 rounded-2xl text-stone hover:text-espresso font-medium transition-colors';
+        tabShopping.className = 'relative flex flex-col items-center justify-center gap-1 py-1 px-3 rounded-2xl text-sage font-semibold transition-colors';
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.handleSearchInput = function (val) {
+      state.searchQuery = val.trim().toLowerCase();
+      document.getElementById('clearSearchBtn').classList.toggle('hidden', !state.searchQuery);
+      renderRecipesGrid();
+    };
+
+    window.clearSearch = function () {
+      document.getElementById('searchInput').value = '';
+      handleSearchInput('');
+    };
+
+    window.selectCategory = function (cat) {
+      state.selectedCategory = cat;
+      renderCategoryChips();
+      renderRecipesGrid();
+    };
+
+    window.resetAllFilters = function () {
+      state.selectedCategory = 'Todas';
+      clearSearch();
+      renderCategoryChips();
+      renderRecipesGrid();
+    };
+
+    function renderCategoryChips() {
+      const container = document.getElementById('categoryChipsContainer');
+      container.innerHTML = CATEGORIES.map((cat) => {
+        const active = state.selectedCategory === cat;
+        const baseCls = 'shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer';
+        const activeCls = active
+          ? 'bg-espresso text-white shadow-xs'
+          : 'bg-white text-stone border border-sand hover:border-espresso/30 hover:text-espresso';
+        return `<button onclick="selectCategory('${cat}')" class="${baseCls} ${activeCls}">${cat}</button>`;
+      }).join('');
+    }
+
+    function getFilteredRecipes() {
+      return state.recipes.filter((r) => {
+        if (state.selectedCategory === 'Favoritas' && !r.favorite) return false;
+        if (state.selectedCategory !== 'Todas' && state.selectedCategory !== 'Favoritas') {
+          const matchesCat = (r.category || '').toLowerCase() === state.selectedCategory.toLowerCase();
+          const matchesTag = (r.tags || []).some((t) => t.toLowerCase() === state.selectedCategory.toLowerCase());
+          if (!matchesCat && !matchesTag) return false;
+        }
+        if (state.searchQuery) {
+          const hay = [
+            r.title,
+            r.category,
+            ...(r.tags || []),
+            ...(r.ingredients || []).map((i) => i.name)
+          ]
+            .join(' ')
+            .toLowerCase();
+          if (!hay.includes(state.searchQuery)) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderRecipesGrid() {
+      const grid = document.getElementById('recipesGrid');
+      const emptyState = document.getElementById('recipesEmptyState');
+      const countText = document.getElementById('recipesCountText');
+      const resetBtn = document.getElementById('resetFiltersBtn');
+
+      const filtered = getFilteredRecipes();
+      const hasFilters = state.selectedCategory !== 'Todas' || state.searchQuery.length > 0;
+      resetBtn.classList.toggle('hidden', !hasFilters);
+
+      countText.textContent = `${filtered.length} ${filtered.length === 1 ? 'receta guardada' : 'recetas guardadas'}`;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        document.getElementById('emptyStateTitle').textContent = hasFilters
+          ? 'No hay recetas con ese filtro'
+          : 'Vuestro recetario está listo';
+        document.getElementById('emptyStateSubtitle').textContent = hasFilters
+          ? 'Prueba con otro ingrediente o pulsa en "Ver todas" para mostrar todo el recetario.'
+          : 'Guarda recetas desde fotos, vídeos cortos, páginas web o notas. La IA las ordena y las sincroniza.';
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      grid.innerHTML = filtered.map((recipe) => {
+        const coverHtml = recipe.coverImage
+          ? `<img src="${recipe.coverImage}" alt="${escapeHtml(recipe.title)}" class="w-full h-40 object-cover rounded-2xl border border-sand/60" />`
+          : `<div class="w-full h-32 rounded-2xl bg-gradient-to-br from-cream via-terracotta-light/60 to-sage-light/60 border border-sand/60 flex items-center justify-between px-5">
+               <span class="font-serif italic text-2xl text-espresso/30 select-none">${escapeHtml(recipe.category || 'Receta')}</span>
+               <span class="px-2.5 py-1 rounded-full bg-white/80 text-[11px] font-semibold text-stone">${escapeHtml(recipe.sourceType || 'IA')}</span>
+             </div>`;
+
+        return `
+          <article
+            onclick="openRecipeDetail('${recipe.id}')"
+            class="group bg-white border border-sand hover:border-terracotta/40 rounded-3xl p-3.5 shadow-card hover:shadow-md transition-all cursor-pointer flex flex-col justify-between space-y-3"
+          >
+            <div class="space-y-3">
+              <div class="relative">
+                ${coverHtml}
+                <button
+                  type="button"
+                  onclick="event.stopPropagation(); toggleFavorite('${recipe.id}')"
+                  class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs shadow-xs flex items-center justify-center transition-transform active:scale-90"
+                  aria-label="Favorita"
+                >
+                  <svg class="w-4 h-4 ${recipe.favorite ? 'text-terracotta fill-terracotta' : 'text-stone'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="px-1 space-y-1">
+                <div class="flex items-center gap-2 text-[11px] font-semibold text-terracotta">
+                  <span>${escapeHtml(recipe.category || 'Comidas')}</span>
+                  ${recipe.totalTime ? `<span class="text-stone font-normal">• ${escapeHtml(recipe.totalTime)}</span>` : ''}
+                  ${recipe.servings ? `<span class="text-stone font-normal">• ${recipe.servings} pers.</span>` : ''}
+                </div>
+                <h3 class="font-serif text-lg font-semibold text-espresso leading-snug group-hover:text-terracotta transition-colors line-clamp-2">
+                  ${escapeHtml(recipe.title)}
+                </h3>
+              </div>
+            </div>
+
+            <div class="px-1 pt-1 flex items-center justify-between text-xs text-stone border-t border-sand/50">
+              <span>${(recipe.ingredients || []).length} ingredientes</span>
+              ${recipe.calories ? `<span class="font-medium text-sage">${recipe.calories} kcal</span>` : '<span>Ver receta →</span>'}
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    window.toggleFavorite = async function (recipeId) {
+      const recipe = state.recipes.find((r) => r.id === recipeId);
+      if (!recipe) return;
+      const updated = { ...recipe, favorite: !recipe.favorite };
+      await saveRecipeRecord(updated);
+    };
+
+    // -----------------------------------------------------------------------
+    // 5. RECIPE DETAIL VIEW (Servings Scaler, Pantry Check & Healthy AI)
+    // -----------------------------------------------------------------------
+    window.openRecipeDetail = function (recipeId) {
+      const recipe = state.recipes.find((r) => r.id === recipeId);
+      if (!recipe) return;
+
+      state.activeRecipeId = recipeId;
+      state.detailServings = Number(recipe.servings) || 2;
+      state.healthyDraft = null;
+      state.showingHealthyVersion = false;
+      state.healthyLoading = false;
+
+      document.getElementById('viewRecipes').classList.add('hidden');
+      document.getElementById('viewShopping').classList.add('hidden');
+      document.getElementById('recipesFilterHeader').classList.add('hidden');
+      document.getElementById('viewDetail').classList.remove('hidden');
+
+      renderRecipeDetail(recipeId);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    function formatScaledAmount(amount, ratio) {
+      if (amount === null || amount === undefined || amount === '' || isNaN(Number(amount))) return '';
+      const val = Number(amount) * ratio;
+      if (val === 0) return '';
+      const rounded = Math.round(val * 100) / 100;
+      if (Math.abs(rounded - 0.5) < 0.02) return '½';
+      if (Math.abs(rounded - 0.25) < 0.02) return '¼';
+      if (Math.abs(rounded - 0.75) < 0.02) return '¾';
+      return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1).replace(/\.0$/, '');
+    }
+
+    function renderRecipeDetail(recipeId) {
+      const baseRecipe = state.recipes.find((r) => r.id === recipeId);
+      if (!baseRecipe) return;
+
+      const activeData = state.showingHealthyVersion && state.healthyDraft ? state.healthyDraft : baseRecipe;
+      const baseServings = Number(baseRecipe.servings) || 2;
+      const ratio = state.detailServings / baseServings;
+
+      const pantryMap = state.pantryCheckedMap[recipeId] || {};
+      const stepsMap = state.completedStepsMap[recipeId] || {};
+
+      const ingredients = activeData.ingredients || [];
+      const missingCount = ingredients.filter((_, idx) => !pantryMap[idx]).length;
+
+      const detailContainer = document.getElementById('viewDetail');
+      detailContainer.innerHTML = `
+        <!-- Top Back & Actions Bar -->
+        <div class="flex items-center justify-between gap-2">
+          <button
+            onclick="navigateTo('recipes')"
+            class="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white border border-sand text-xs font-semibold text-espresso hover:border-terracotta/40 transition-all"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            <span>Volver</span>
+          </button>
+
+          <div class="flex items-center gap-2">
+            <button
+              onclick="shareRecipeWhatsApp('${baseRecipe.id}')"
+              class="px-3.5 py-2 rounded-2xl bg-white border border-sand text-xs font-semibold text-espresso hover:border-sage transition-all"
+            >
+              Compartir
+            </button>
+            <button
+              onclick="toggleFavorite('${baseRecipe.id}')"
+              class="p-2 rounded-2xl bg-white border border-sand"
+              aria-label="Favorita"
+            >
+              <svg class="w-4 h-4 ${baseRecipe.favorite ? 'text-terracotta fill-terracotta' : 'text-stone'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+            </button>
+            <button
+              onclick="confirmDeleteRecipe('${baseRecipe.id}')"
+              class="p-2 rounded-2xl bg-white border border-sand text-stone hover:text-red-600"
+              aria-label="Eliminar"
+            >
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Hero Card -->
+        <div class="bg-white border border-sand rounded-3xl overflow-hidden shadow-card">
+          ${baseRecipe.coverImage ? `<img src="${baseRecipe.coverImage}" alt="${escapeHtml(activeData.title)}" class="w-full max-h-64 object-cover" />` : ''}
+          <div class="p-5 space-y-4">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-3 py-1 rounded-full bg-terracotta-light text-terracotta text-xs font-semibold">
+                ${escapeHtml(activeData.category || 'Comidas')}
+              </span>
+              ${activeData.totalTime ? `<span class="px-3 py-1 rounded-full bg-cream text-espresso text-xs font-medium">${escapeHtml(activeData.totalTime)}</span>` : ''}
+              ${state.showingHealthyVersion ? `<span class="px-3 py-1 rounded-full bg-sage text-white text-xs font-semibold">Versión Saludable IA</span>` : ''}
+            </div>
+
+            <h1 class="font-serif text-2xl sm:text-3xl font-bold text-espresso leading-tight">
+              ${escapeHtml(activeData.title)}
+            </h1>
+
+            <!-- Nutrition Row -->
+            ${activeData.calories ? `
+              <div class="grid grid-cols-4 gap-2 p-3 rounded-2xl bg-alabaster border border-sand/80 text-center">
+                <div>
+                  <p class="text-xs font-bold text-espresso">${activeData.calories}</p>
+                  <p class="text-[10px] text-stone">kcal/pers</p>
+                </div>
+                <div>
+                  <p class="text-xs font-bold text-sage">${activeData.protein || 0}g</p>
+                  <p class="text-[10px] text-stone">Proteína</p>
+                </div>
+                <div>
+                  <p class="text-xs font-bold text-espresso">${activeData.carbs || 0}g</p>
+                  <p class="text-[10px] text-stone">Carbos</p>
+                </div>
+                <div>
+                  <p class="text-xs font-bold text-espresso">${activeData.fats || 0}g</p>
+                  <p class="text-[10px] text-stone">Grasas</p>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- AI Healthy Alternative Banner / Generator -->
+            <div class="pt-1">
+              ${!state.healthyDraft ? `
+                <button
+                  onclick="generateHealthyAlternative('${baseRecipe.id}')"
+                  ${state.healthyLoading ? 'disabled' : ''}
+                  class="w-full py-3 px-4 rounded-2xl bg-sage-light hover:bg-sage/15 border border-sage-border text-sage-dark text-xs font-semibold flex items-center justify-center gap-2 transition-all"
+                >
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M12 2C7.5 2 4 5.5 4 10c0 3.5 2.2 6.5 5.5 7.5V22h5v-4.5c3.3-1 5.5-4 5.5-7.5 0-4.5-3.5-8-8-8z" />
+                  </svg>
+                  <span>${state.healthyLoading ? 'Analizando alternativas saludables con IA...' : 'Crear versión más saludable con IA'}</span>
+                </button>
+              ` : `
+                <div class="p-4 rounded-2xl bg-sage-light/70 border border-sage-border space-y-3">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-xs font-bold text-sage-dark">Comparador Versión Saludable</span>
+                    <div class="flex bg-white p-0.5 rounded-xl border border-sage-border text-[11px] font-semibold">
+                      <button
+                        onclick="toggleHealthyView(true)"
+                        class="px-2.5 py-1 rounded-lg ${state.showingHealthyVersion ? 'bg-sage text-white' : 'text-stone'}"
+                      >
+                        Saludable
+                      </button>
+                      <button
+                        onclick="toggleHealthyView(false)"
+                        class="px-2.5 py-1 rounded-lg ${!state.showingHealthyVersion ? 'bg-espresso text-white' : 'text-stone'}"
+                      >
+                        Original
+                      </button>
+                    </div>
+                  </div>
+
+                  <ul class="space-y-1 text-xs text-espresso/90 list-disc pl-4">
+                    ${(state.healthyDraft.changesSummary || []).map((c) => `<li>${escapeHtml(c)}</li>`).join('')}
+                  </ul>
+
+                  ${state.healthyDraft.reliabilityNote ? `
+                    <p class="text-[11px] text-sage-dark bg-white/80 p-2.5 rounded-xl border border-sage-border/60">
+                      <strong>Fiabilidad culinaria:</strong> ${escapeHtml(state.healthyDraft.reliabilityNote)}
+                    </p>
+                  ` : ''}
+
+                  <div class="flex flex-wrap gap-2 pt-1">
+                    <button
+                      onclick="saveHealthyVersionAsNew()"
+                      class="flex-1 py-2 px-3 rounded-xl bg-sage text-white text-xs font-semibold hover:bg-sage-dark"
+                    >
+                      Guardar como nueva
+                    </button>
+                    <button
+                      onclick="replaceWithHealthyVersion('${baseRecipe.id}')"
+                      class="flex-1 py-2 px-3 rounded-xl bg-white border border-sage-border text-sage-dark text-xs font-semibold hover:bg-sage-light"
+                    >
+                      Reemplazar receta
+                    </button>
+                  </div>
+                </div>
+              `}
+            </div>
+          </div>
+        </div>
+
+        <!-- Ingredients & Pantry Check Card -->
+        <div class="bg-white border border-sand rounded-3xl p-5 shadow-card space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 class="font-serif text-xl font-semibold text-espresso">Ingredientes</h2>
+              <p class="text-xs text-stone">Marca lo que ya tienes en casa; lo demás irá a la lista</p>
+            </div>
+
+            <!-- Servings Scaler Controls -->
+            <div class="flex items-center gap-1.5 bg-cream p-1 rounded-2xl border border-sand">
+              <button
+                onclick="changeServings(-1)"
+                class="w-7 h-7 rounded-xl bg-white text-espresso font-bold text-sm hover:bg-sand/50"
+              >−</button>
+              <span class="px-2 text-xs font-bold text-espresso min-w-[68px] text-center">
+                ${state.detailServings} pers.
+              </span>
+              <button
+                onclick="changeServings(1)"
+                class="w-7 h-7 rounded-xl bg-white text-espresso font-bold text-sm hover:bg-sand/50"
+              >+</button>
+            </div>
+          </div>
+
+          <!-- Quick Ratio Pills -->
+          <div class="flex items-center gap-1.5 text-[11px]">
+            <span class="text-stone mr-1">Ajuste rápido:</span>
+            <button onclick="setServingsMultiplier(${baseServings}, 0.5)" class="px-2.5 py-1 rounded-lg bg-alabaster border border-sand hover:border-terracotta font-semibold">0.5x</button>
+            <button onclick="setServingsMultiplier(${baseServings}, 1)" class="px-2.5 py-1 rounded-lg bg-alabaster border border-sand hover:border-terracotta font-semibold">1x (${baseServings})</button>
+            <button onclick="setServingsMultiplier(${baseServings}, 2)" class="px-2.5 py-1 rounded-lg bg-alabaster border border-sand hover:border-terracotta font-semibold">2x</button>
+          </div>
+
+          <!-- Interactive Ingredient Rows -->
+          <div class="divide-y divide-sand/60">
+            ${ingredients.map((ing, idx) => {
+              const inPantry = !!pantryMap[idx];
+              const scaledQty = formatScaledAmount(ing.amount, ratio);
+              const qtyLabel = [scaledQty, ing.unit].filter(Boolean).join(' ');
+              return `
+                <button
+                  type="button"
+                  onclick="toggleIngredientPantry('${recipeId}', ${idx})"
+                  class="w-full py-3 flex items-center justify-between gap-3 text-left transition-colors hover:bg-alabaster/60 px-1 rounded-xl"
+                >
+                  <div class="flex items-center gap-3">
+                    <span class="w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 ${inPantry ? 'bg-sage border-sage text-white' : 'border-stone/40 bg-white'}">
+                      ${inPantry ? '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                    </span>
+                    <span class="text-sm ${inPantry ? 'line-through text-stone' : 'text-espresso font-medium'}">
+                      ${qtyLabel ? `<strong class="text-terracotta">${escapeHtml(qtyLabel)}</strong> ` : ''}${escapeHtml(ing.name)}
+                    </span>
+                  </div>
+                  <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${inPantry ? 'bg-sage-light text-sage' : 'bg-terracotta-light text-terracotta'}">
+                    ${inPantry ? 'En despensa' : 'Falta'}
+                  </span>
+                </button>
+              `;
+            }).join('')}
+          </div>
+
+          <!-- Send Missing Ingredients to Shopping List Button -->
+          <button
+            type="button"
+            onclick="addMissingIngredientsToShoppingList('${recipeId}')"
+            class="w-full py-3 px-4 rounded-2xl bg-sage hover:bg-sage-dark text-white text-xs font-semibold shadow-xs flex items-center justify-center gap-2 transition-all active:scale-98"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+            </svg>
+            <span>
+              ${missingCount > 0
+                ? `Enviar los ${missingCount} que faltan a Lista Compra`
+                : 'Todos marcados en despensa (añadir todos igualmente)'}
+            </span>
+          </button>
+        </div>
+
+        <!-- Cooking Steps Card -->
+        <div class="bg-white border border-sand rounded-3xl p-5 shadow-card space-y-4">
+          <div>
+            <h2 class="font-serif text-xl font-semibold text-espresso">Preparación paso a paso</h2>
+            <p class="text-xs text-stone">Toca cada paso para marcarlo mientras cocinas</p>
+          </div>
+
+          <div class="space-y-3">
+            ${(activeData.steps || []).map((step, idx) => {
+              const done = !!stepsMap[idx];
+              return `
+                <div
+                  onclick="toggleCookingStep('${recipeId}', ${idx})"
+                  class="p-3.5 rounded-2xl border transition-all cursor-pointer flex gap-3 ${done ? 'bg-alabaster border-sand/60 opacity-60' : 'bg-white border-sand hover:border-terracotta/40'}"
+                >
+                  <span class="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 ${done ? 'bg-sage text-white' : 'bg-terracotta-light text-terracotta'}">
+                    ${done ? '✓' : idx + 1}
+                  </span>
+                  <p class="text-sm text-espresso leading-relaxed ${done ? 'line-through' : ''}">
+                    ${escapeHtml(step)}
+                  </p>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    window.changeServings = function (delta) {
+      state.detailServings = Math.max(1, Math.min(50, state.detailServings + delta));
+      renderRecipeDetail(state.activeRecipeId);
+    };
+
+    window.setServingsMultiplier = function (base, mult) {
+      state.detailServings = Math.max(1, Math.round(base * mult));
+      renderRecipeDetail(state.activeRecipeId);
+    };
+
+    window.toggleIngredientPantry = function (recipeId, idx) {
+      if (!state.pantryCheckedMap[recipeId]) state.pantryCheckedMap[recipeId] = {};
+      state.pantryCheckedMap[recipeId][idx] = !state.pantryCheckedMap[recipeId][idx];
+      renderRecipeDetail(recipeId);
+    };
+
+    window.toggleCookingStep = function (recipeId, idx) {
+      if (!state.completedStepsMap[recipeId]) state.completedStepsMap[recipeId] = {};
+      state.completedStepsMap[recipeId][idx] = !state.completedStepsMap[recipeId][idx];
+      renderRecipeDetail(recipeId);
+    };
+
+    window.addMissingIngredientsToShoppingList = async function (recipeId) {
+      const baseRecipe = state.recipes.find((r) => r.id === recipeId);
+      if (!baseRecipe) return;
+
+      const activeData = state.showingHealthyVersion && state.healthyDraft ? state.healthyDraft : baseRecipe;
+      const baseServings = Number(baseRecipe.servings) || 2;
+      const ratio = state.detailServings / baseServings;
+      const pantryMap = state.pantryCheckedMap[recipeId] || {};
+      const ingredients = activeData.ingredients || [];
+
+      let toAdd = ingredients.filter((_, idx) => !pantryMap[idx]);
+      if (toAdd.length === 0) toAdd = ingredients;
+
+      for (const ing of toAdd) {
+        const scaledQty = formatScaledAmount(ing.amount, ratio);
+        const label = [scaledQty, ing.unit, ing.name].filter(Boolean).join(' ');
+        const item = {
+          id: 'shop-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+          text: label,
+          recipeTitle: activeData.title,
+          checked: false,
+          createdAt: Date.now()
+        };
+        await saveShoppingRecord(item);
+      }
+
+      showToast(`${toAdd.length} ingredientes añadidos a la Lista de la Compra`);
+    };
+
+    window.confirmDeleteRecipe = async function (recipeId) {
+      if (!confirm('¿Seguro que quieres borrar esta receta de vuestro recetario?')) return;
+      await deleteRecipeRecord(recipeId);
+      showToast('Receta eliminada');
+      navigateTo('recipes');
+    };
+
+    window.shareRecipeWhatsApp = function (recipeId) {
+      const r = state.recipes.find((item) => item.id === recipeId);
+      if (!r) return;
+      const lines = [
+        `*${r.title}* (${r.servings || 2} pers.)`,
+        '',
+        '*Ingredientes:*',
+        ...(r.ingredients || []).map((i) => `- ${[i.amount, i.unit, i.name].filter(Boolean).join(' ')}`),
+        '',
+        '*Preparación:*',
+        ...(r.steps || []).map((s, idx) => `${idx + 1}. ${s}`)
+      ].join('\n');
+
+      if (navigator.share) {
+        navigator.share({ title: r.title, text: lines }).catch(() => {});
+      } else {
+        navigator.clipboard?.writeText(lines);
+        showToast('Receta copiada para pegar en WhatsApp');
+      }
+    };
+
+    // -----------------------------------------------------------------------
+    // 6. AI HEALTHY ALTERNATIVE GENERATOR
+    // -----------------------------------------------------------------------
+    window.generateHealthyAlternative = async function (recipeId) {
+      const recipe = state.recipes.find((r) => r.id === recipeId);
+      if (!recipe) return;
+
+      state.healthyLoading = true;
+      renderRecipeDetail(recipeId);
+
+      try {
+        const prompt = `Eres un chef nutricionista experto. Analiza esta receta y crea una alternativa más saludable manteniendo todo el sabor:
+Receta: ${JSON.stringify({
+          title: recipe.title,
+          category: recipe.category,
+          servings: recipe.servings,
+          ingredients: recipe.ingredients,
+          steps: recipe.steps
+        })}
+
+Devuelve ÚNICAMENTE un JSON válido con esta estructura exacta:
+{
+  "title": "Título versión ligera",
+  "category": "${recipe.category || 'Saludable'}",
+  "totalTime": "${recipe.totalTime || '25 min'}",
+  "servings": ${recipe.servings || 2},
+  "calories": 320,
+  "protein": 28,
+  "carbs": 22,
+  "fats": 11,
+  "changesSummary": ["Cambio 1 explicado", "Cambio 2 explicado"],
+  "reliabilityNote": "Breve nota sobre fiabilidad culinaria (avisa si es repostería)",
+  "ingredients": [{"amount": 200, "unit": "g", "name": "Ingrediente saludable"}],
+  "steps": ["Paso 1 adaptado", "Paso 2 adaptado"]
+}`;
+
+        const healthyJson = await callGeminiJson(prompt, []);
+        state.healthyDraft = {
+          ...recipe,
+          ...healthyJson,
+          id: 'healthy-' + Date.now(),
+          createdAt: Date.now()
+        };
+        state.showingHealthyVersion = true;
+        showToast('¡Versión saludable lista!');
+      } catch (err) {
+        showToast(err.message || 'No se pudo generar la versión saludable');
+      } finally {
+        state.healthyLoading = false;
+        renderRecipeDetail(recipeId);
+      }
+    };
+
+    window.toggleHealthyView = function (showHealthy) {
+      state.showingHealthyVersion = showHealthy;
+      renderRecipeDetail(state.activeRecipeId);
+    };
+
+    window.saveHealthyVersionAsNew = async function () {
+      if (!state.healthyDraft) return;
+      const newRec = { ...state.healthyDraft, id: 'rec-' + Date.now(), createdAt: Date.now() };
+      await saveRecipeRecord(newRec);
+      showToast('Versión saludable guardada como receta nueva');
+      openRecipeDetail(newRec.id);
+    };
+
+    window.replaceWithHealthyVersion = async function (originalId) {
+      if (!state.healthyDraft) return;
+      const updated = { ...state.healthyDraft, id: originalId };
+      await saveRecipeRecord(updated);
+      state.healthyDraft = null;
+      state.showingHealthyVersion = false;
+      showToast('Receta actualizada con la versión saludable');
+      renderRecipeDetail(originalId);
+    };
+
+    // -----------------------------------------------------------------------
+    // 7. SHOPPING LIST VIEW
+    // -----------------------------------------------------------------------
+    function renderShoppingList() {
+      const container = document.getElementById('shoppingListContainer');
+      const badge = document.getElementById('shoppingBadgeCount');
+      const summary = document.getElementById('shoppingSummaryText');
+      const clearBtn = document.getElementById('clearCheckedBtn');
+
+      const pending = state.shoppingList.filter((i) => !i.checked);
+      const checked = state.shoppingList.filter((i) => i.checked);
+
+      badge.textContent = String(pending.length);
+      badge.classList.toggle('hidden', pending.length === 0);
+      clearBtn.classList.toggle('hidden', checked.length === 0);
+
+      summary.textContent = `${pending.length} pendientes · ${checked.length} en el carrito`;
+
+      if (state.shoppingList.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white border border-sand rounded-3xl p-8 text-center text-stone space-y-1">
+            <p class="font-serif text-lg font-semibold text-espresso">La lista de la compra está vacía</p>
+            <p class="text-xs">Abre cualquier receta y pulsa «Enviar los que faltan a Lista Compra».</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = state.shoppingList.map((item) => `
+        <div class="bg-white border border-sand rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-2xs">
+          <button
+            type="button"
+            onclick="toggleShoppingItem('${item.id}')"
+            class="flex items-center gap-3 text-left flex-1"
+          >
+            <span class="w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 ${item.checked ? 'bg-sage border-sage text-white' : 'border-stone/40 bg-alabaster'}">
+              ${item.checked ? '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+            </span>
+            <div>
+              <p class="text-sm ${item.checked ? 'line-through text-stone' : 'text-espresso font-medium'}">
+                ${escapeHtml(item.text)}
+              </p>
+              ${item.recipeTitle ? `<p class="text-[11px] text-stone">Para: ${escapeHtml(item.recipeTitle)}</p>` : ''}
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onclick="deleteShoppingItem('${item.id}')"
+            class="p-1.5 text-stone hover:text-red-600 rounded-lg"
+            aria-label="Borrar"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    window.handleAddManualShoppingItem = async function (e) {
+      e.preventDefault();
+      const input = document.getElementById('manualShoppingInput');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      await saveShoppingRecord({
+        id: 'shop-' + Date.now(),
+        text,
+        recipeTitle: '',
+        checked: false,
+        createdAt: Date.now()
+      });
+    };
+
+    window.toggleShoppingItem = async function (itemId) {
+      const item = state.shoppingList.find((i) => i.id === itemId);
+      if (!item) return;
+      await saveShoppingRecord({ ...item, checked: !item.checked });
+    };
+
+    window.deleteShoppingItem = async function (itemId) {
+      await deleteShoppingRecord(itemId);
+    };
+
+    window.clearCheckedShoppingItems = async function () {
+      const checked = state.shoppingList.filter((i) => i.checked);
+      for (const item of checked) {
+        await deleteShoppingRecord(item.id);
+      }
+      showToast('Elementos marcados eliminados');
+    };
+
+    // -----------------------------------------------------------------------
+    // 8. MULTIMODAL IMPORT MODAL (Photo, Video, Web URL, Text)
+    // -----------------------------------------------------------------------
+    window.openAddModal = function () {
+      document.getElementById('importErrorBox').classList.add('hidden');
+      document.getElementById('importCaptureStep').classList.remove('hidden');
+      document.getElementById('importReviewStep').classList.add('hidden');
+      document.getElementById('addRecipeModal').classList.remove('hidden');
+    };
+
+    window.closeModal = function (id) {
+      document.getElementById(id).classList.add('hidden');
+    };
+
+    window.switchImportSource = function (source) {
+      state.importSource = source;
+      document.getElementById('importErrorBox').classList.add('hidden');
+
+      const tabMap = {
+        Foto: 'srcTabFoto',
+        Vídeo: 'srcTabVideo',
+        Web: 'srcTabWeb',
+        Texto: 'srcTabTexto'
+      };
+      const panelMap = {
+        Foto: 'panelFoto',
+        Vídeo: 'panelVideo',
+        Web: 'panelWeb',
+        Texto: 'panelTexto'
+      };
+
+      Object.entries(tabMap).forEach(([key, btnId]) => {
+        const btn = document.getElementById(btnId);
+        if (key === source) {
+          btn.className = 'src-tab flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 rounded-xl text-xs font-semibold bg-white text-terracotta shadow-xs transition-all';
+        } else {
+          btn.className = 'src-tab flex flex-col sm:flex-row items-center justify-center gap-1 py-2 px-1 rounded-xl text-xs font-medium text-stone hover:text-espresso transition-all';
+        }
+      });
+
+      Object.entries(panelMap).forEach(([key, panelId]) => {
+        document.getElementById(panelId).classList.toggle('hidden', key !== source);
+      });
+    };
+
+    // Photo compression for fast AI & clean storage
+    window.handlePhotoFileSelect = function (event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_DIM = 1200;
+          let w = img.width;
+          let h = img.height;
+          if (w > MAX_DIM || h > MAX_DIM) {
+            if (w > h) { h = Math.round((h * MAX_DIM) / w); w = MAX_DIM; }
+            else { w = Math.round((w * MAX_DIM) / h); h = MAX_DIM; }
+          }
+          canvas.width = w;
+          canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+
+          state.selectedPhotoBase64 = dataUrl.split(',')[1];
+          state.selectedPhotoMime = 'image/jpeg';
+
+          document.getElementById('photoPreviewImg').src = dataUrl;
+          document.getElementById('photoPreviewWrapper').classList.remove('hidden');
+          document.getElementById('photoUploadPrompt').classList.add('hidden');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    window.clearSelectedPhoto = function () {
+      state.selectedPhotoBase64 = null;
+      state.selectedPhotoMime = null;
+      document.getElementById('photoPreviewWrapper').classList.add('hidden');
+      document.getElementById('photoUploadPrompt').classList.remove('hidden');
+    };
+
+    // Video thumbnail extraction & size check
+    function extractVideoFrame(file) {
+      return new Promise((resolve) => {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
+        const url = URL.createObjectURL(file);
+        video.src = url;
+
+        video.onloadeddata = () => {
+          video.currentTime = Math.min(1, video.duration / 3 || 0);
+        };
+        video.onseeked = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.min(640, video.videoWidth || 640);
+          canvas.height = Math.round(canvas.width * ((video.videoHeight || 360) / (video.videoWidth || 640)));
+          canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+          const thumbDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+          URL.revokeObjectURL(url);
+          resolve(thumbDataUrl);
+        };
+        video.onerror = () => {
+          URL.revokeObjectURL(url);
+          resolve(null);
+        };
+      });
+    }
+
+    window.handleVideoFileSelect = async function (event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      state.selectedVideoFile = file;
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      document.getElementById('videoFileInfo').textContent = `${file.name} (${sizeMb} MB)`;
+      document.getElementById('videoSizeWarning').classList.toggle('hidden', file.size <= 20 * 1024 * 1024);
+
+      const thumbDataUrl = await extractVideoFrame(file);
+      if (thumbDataUrl) {
+        state.selectedVideoThumbBase64 = thumbDataUrl;
+        document.getElementById('videoThumbImg').src = thumbDataUrl;
+      }
+      document.getElementById('videoPreviewWrapper').classList.remove('hidden');
+      document.getElementById('videoUploadPrompt').classList.add('hidden');
+    };
+
+    window.clearSelectedVideo = function () {
+      state.selectedVideoFile = null;
+      state.selectedVideoThumbBase64 = null;
+      document.getElementById('videoPreviewWrapper').classList.add('hidden');
+      document.getElementById('videoUploadPrompt').classList.remove('hidden');
+      document.getElementById('videoSizeWarning').classList.add('hidden');
+    };
+
+    window.toggleWebManualFallback = function () {
+      const box = document.getElementById('webManualFallbackBox');
+      const chevron = document.getElementById('webFallbackChevron');
+      box.classList.toggle('hidden');
+      chevron.classList.toggle('rotate-180');
+    };
+
+    // 3-Tier Web Content Extractor (Jina Reader + JSON-LD Schema.org/Recipe Proxies)
+    async function extractWebRecipeContent(url) {
+      // Tier 1: r.jina.ai clean markdown
+      try {
+        const res = await fetch(`https://r.jina.ai/${url}`);
+        if (res.ok) {
+          const text = await res.text();
+          if (text && text.length > 250 && !text.includes('Access Denied') && !text.includes('Just a moment...')) {
+            return text.slice(0, 14000);
+          }
+        }
+      } catch (_) {}
+
+      // Tier 2 & 3: HTML Proxy + JSON-LD Schema.org/Recipe extraction
+      const proxies = [
+        (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+        (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`
+      ];
+
+      for (const buildProxyUrl of proxies) {
+        try {
+          const res = await fetch(buildProxyUrl(url));
+          if (!res.ok) continue;
+          const html = await res.text();
+          const parser = new DOMParser();
+          const docHtml = parser.parseFromString(html, 'text/html');
+
+          // Look for Schema.org Recipe JSON-LD
+          const scripts = Array.from(docHtml.querySelectorAll('script[type="application/ld+json"]'));
+          for (const s of scripts) {
+            try {
+              const json = JSON.parse(s.textContent);
+              const items = Array.isArray(json) ? json : json['@graph'] ? json['@graph'] : [json];
+              const recipeObj = items.find((it) => it['@type'] === 'Recipe' || (Array.isArray(it['@type']) && it['@type'].includes('Recipe')));
+              if (recipeObj) {
+                return JSON.stringify({
+                  name: recipeObj.name,
+                  recipeIngredient: recipeObj.recipeIngredient,
+                  recipeInstructions: recipeObj.recipeInstructions,
+                  totalTime: recipeObj.totalTime,
+                  recipeYield: recipeObj.recipeYield
+                });
+              }
+            } catch (_) {}
+          }
+
+          const bodyText = docHtml.body?.innerText?.replace(/\s+/g, ' ').trim() || '';
+          if (bodyText.length > 300) return bodyText.slice(0, 12000);
+        } catch (_) {}
+      }
+
+      return null;
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Core Gemini Structured JSON Call
+    async function callGeminiJson(promptText, inlineParts = []) {
+      const isBuiltinEnv = typeof __firebase_config !== 'undefined' && __firebase_config;
+      const apiKey = state.geminiKey || '';
+
+      if (!apiKey && !isBuiltinEnv) {
+        openAccountSettings();
+        throw new Error('Pega tu clave gratuita de Gemini en Ajustes (paso 1) para usar la IA en tu web.');
+      }
+
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      const parts = [{ text: promptText }, ...inlineParts];
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts }],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            temperature: 0.2
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error?.message || `Error de IA (${response.status}). Revisa tu clave de Gemini.`);
+      }
+
+      const data = await response.json();
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const cleanJson = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+      return JSON.parse(cleanJson);
+    }
+
+    window.processRecipeWithAI = async function () {
+      const btn = document.getElementById('runAiExtractBtn');
+      const btnText = document.getElementById('runAiExtractBtnText');
+      const errorBox = document.getElementById('importErrorBox');
+      errorBox.classList.add('hidden');
+
+      btn.disabled = true;
+      btnText.textContent = 'Analizando y ordenando receta...';
+
+      try {
+        const inlineParts = [];
+        let contextText = '';
+        let coverImage = null;
+
+        if (state.importSource === 'Foto') {
+          if (!state.selectedPhotoBase64) throw new Error('Selecciona o haz una foto de la receta primero.');
+          inlineParts.push({
+            inlineData: { mimeType: state.selectedPhotoMime, data: state.selectedPhotoBase64 }
+          });
+          coverImage = `data:${state.selectedPhotoMime};base64,${state.selectedPhotoBase64}`;
+          const note = document.getElementById('photoExtraNote').value.trim();
+          contextText = `Transcribe exactamente la receta de esta imagen. ${note ? 'Nota del usuario: ' + note : ''}`;
+        } else if (state.importSource === 'Vídeo') {
+          const desc = document.getElementById('videoDescriptionInput').value.trim();
+          if (!state.selectedVideoFile && !desc) {
+            throw new Error('Sube un vídeo corto o pega la descripción del vídeo.');
+          }
+          if (state.selectedVideoFile && state.selectedVideoFile.size <= 20 * 1024 * 1024) {
+            const vidBase64 = await fileToBase64(state.selectedVideoFile);
+            inlineParts.push({
+              inlineData: { mimeType: state.selectedVideoFile.type || 'video/mp4', data: vidBase64 }
+            });
+          }
+          coverImage = state.selectedVideoThumbBase64 || null;
+          contextText = `Extrae y ordena la receta de este vídeo culinario. ${desc ? 'Descripción/subtítulos: ' + desc : ''}`;
+        } else if (state.importSource === 'Web') {
+          const url = document.getElementById('webUrlInput').value.trim();
+          const manualText = document.getElementById('webManualTextInput').value.trim();
+
+          if (!url && !manualText) throw new Error('Introduce el enlace web o pega el texto de la receta.');
+
+          if (manualText) {
+            contextText = `Extrae la receta de este texto web:\n${manualText}`;
+          } else {
+            btnText.textContent = 'Leyendo página web...';
+            const extracted = await extractWebRecipeContent(url);
+            if (!extracted) {
+              document.getElementById('webManualFallbackBox').classList.remove('hidden');
+              throw new Error('Esta web protege su contenido automático. Copia el texto de la página y pégalo en el cuadro inferior.');
+            }
+            contextText = `Extrae y ordena en español la receta de este contenido web (${url}):\n${extracted}`;
+          }
+        } else if (state.importSource === 'Texto') {
+          const raw = document.getElementById('plainTextInput').value.trim();
+          if (!raw) throw new Error('Escribe o pega los ingredientes y pasos de la receta.');
+          contextText = `Ordena y estructura en español esta receta:\n${raw}`;
+        }
+
+        btnText.textContent = 'Estructurando ingredientes y pasos...';
+
+        const schemaInstruction = `${contextText}
+
+Devuelve ÚNICAMENTE un objeto JSON válido en español con esta estructura exacta:
+{
+  "title": "Nombre atractivo de la receta",
+  "category": "Una de: Desayunos, Comidas, Cenas, Postres, Snacks, Bebidas, Saludable",
+  "totalTime": "Ej. 30 min",
+  "servings": 2,
+  "calories": 410,
+  "protein": 24,
+  "carbs": 35,
+  "fats": 16,
+  "tags": ["Etiqueta1", "Etiqueta2"],
+  "ingredients": [
+    { "amount": 200, "unit": "g", "name": "Nombre limpio del ingrediente" }
+  ],
+  "steps": [
+    "Paso 1 claro y directo",
+    "Paso 2 claro y directo"
+  ]
+}`;
+
+        const parsed = await callGeminiJson(schemaInstruction, inlineParts);
+
+        state.reviewedDraft = {
+          id: 'rec-' + Date.now(),
+          title: parsed.title || 'Receta sin título',
+          category: parsed.category || 'Comidas',
+          totalTime: parsed.totalTime || '25 min',
+          servings: Number(parsed.servings) || 2,
+          calories: Number(parsed.calories) || 0,
+          protein: Number(parsed.protein) || 0,
+          carbs: Number(parsed.carbs) || 0,
+          fats: Number(parsed.fats) || 0,
+          tags: Array.isArray(parsed.tags) ? parsed.tags : [],
+          ingredients: Array.isArray(parsed.ingredients) ? parsed.ingredients : [],
+          steps: Array.isArray(parsed.steps) ? parsed.steps : [],
+          coverImage,
+          sourceType: state.importSource,
+          favorite: false,
+          createdAt: Date.now()
+        };
+
+        // Populate Editable Review Form
+        document.getElementById('revTitle').value = state.reviewedDraft.title;
+        document.getElementById('revCategory').value = CATEGORIES.includes(state.reviewedDraft.category)
+          ? state.reviewedDraft.category
+          : 'Comidas';
+        document.getElementById('revServings').value = state.reviewedDraft.servings;
+        document.getElementById('revTime').value = state.reviewedDraft.totalTime;
+        document.getElementById('revIngredients').value = state.reviewedDraft.ingredients
+          .map((i) => [i.amount, i.unit, i.name].filter(Boolean).join(' '))
+          .join('\n');
+        document.getElementById('revSteps').value = state.reviewedDraft.steps.join('\n');
+
+        document.getElementById('importCaptureStep').classList.add('hidden');
+        document.getElementById('importReviewStep').classList.remove('hidden');
+      } catch (err) {
+        errorBox.textContent = err.message || 'Ocurrió un error al procesar la receta.';
+        errorBox.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Transcribir y ordenar con IA';
+      }
+    };
+
+    window.backToCaptureStep = function () {
+      document.getElementById('importReviewStep').classList.add('hidden');
+      document.getElementById('importCaptureStep').classList.remove('hidden');
+    };
+
+    window.confirmAndSaveReviewedRecipe = async function () {
+      if (!state.reviewedDraft) return;
+
+      const parsedIngredients = document
+        .getElementById('revIngredients')
+        .value.split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const match = line.match(/^(\d+(?:[.,]\d+)?)\s*([a-zA-ZáéíóúñÁÉÍÓÚÑ]+)?\s+(.+)$/);
+          if (match) {
+            return {
+              amount: parseFloat(match[1].replace(',', '.')),
+              unit: match[2] || '',
+              name: match[3]
+            };
+          }
+          return { amount: null, unit: '', name: line };
+        });
+
+      const parsedSteps = document
+        .getElementById('revSteps')
+        .value.split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean);
+
+      const finalRecipe = {
+        ...state.reviewedDraft,
+        title: document.getElementById('revTitle').value.trim() || state.reviewedDraft.title,
+        category: document.getElementById('revCategory').value,
+        servings: Math.max(1, Number(document.getElementById('revServings').value) || 2),
+        totalTime: document.getElementById('revTime').value.trim(),
+        ingredients: parsedIngredients,
+        steps: parsedSteps
+      };
+
+      await saveRecipeRecord(finalRecipe);
+      closeModal('addRecipeModal');
+      showToast('¡Receta guardada en vuestro recetario!');
+      openRecipeDetail(finalRecipe.id);
+    };
+
+    // -----------------------------------------------------------------------
+    // 9. PARTNER SYNC, CLOUD & AI SETTINGS MODAL
+    // -----------------------------------------------------------------------
+    window.openAccountSettings = function () {
+      document.getElementById('settingsGeminiKeyInput').value = state.geminiKey || '';
+      document.getElementById('settingsBookCodeInput').value = state.bookCode || '';
+      document.getElementById('settingsFirebaseConfigInput').value = state.customFirebaseConfig
+        ? JSON.stringify(state.customFirebaseConfig, null, 2)
+        : '';
+      document.getElementById('accountModal').classList.remove('hidden');
+    };
+
+    function parseFirebaseSnippet(rawText) {
+      if (!rawText || !rawText.trim()) return null;
+      // Extract keys robustly even if pasted as JS object literal without quoted keys
+      const keys = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+      const extracted = {};
+      for (const k of keys) {
+        const regex = new RegExp(`["']?${k}["']?\\s*:\\s*["']([^"']+)["']`);
+        const m = rawText.match(regex);
+        if (m) extracted[k] = m[1];
+      }
+      if (extracted.apiKey && extracted.projectId) return extracted;
+      return safeJsonParse(rawText);
+    }
+
+    window.saveExternalCloudSettings = async function () {
+      const geminiVal = document.getElementById('settingsGeminiKeyInput').value.trim();
+      const bookVal = document.getElementById('settingsBookCodeInput').value.trim() || generateDefaultBookCode();
+      const rawFb = document.getElementById('settingsFirebaseConfigInput').value.trim();
+
+      state.geminiKey = geminiVal;
+      state.bookCode = bookVal.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+
+      localStorage.setItem(STORAGE_KEYS.GEMINI_KEY, state.geminiKey);
+      localStorage.setItem(STORAGE_KEYS.BOOK_CODE, state.bookCode);
+
+      if (rawFb) {
+        const parsedCfg = parseFirebaseSnippet(rawFb);
+        if (!parsedCfg || !parsedCfg.projectId) {
+          showToast('No se reconoció el bloque firebaseConfig. Revisa el texto pegado.');
+          return;
+        }
+        state.customFirebaseConfig = parsedCfg;
+        localStorage.setItem(STORAGE_KEYS.FIREBASE_CFG, JSON.stringify(parsedCfg));
+        showToast('¡Configuración guardada! Conectando nube compartida...');
+        await initStorageEngine();
+      } else {
+        showToast('Clave de IA y código guardados');
+      }
+    };
+
+    window.copyPartnerInviteLink = function () {
+      const payload = {
+        geminiKey: state.geminiKey || '',
+        bookCode: state.bookCode,
+        firebaseConfig: state.customFirebaseConfig || null
+      };
+
+      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+      const baseUrl = window.location.origin + window.location.pathname;
+      const inviteUrl = `${baseUrl}#pareja=${encodeURIComponent(encoded)}`;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(inviteUrl).then(() => {
+          showToast('¡Enlace mágico copiado! Pégaselo a tu novio por WhatsApp.');
+        });
+      } else {
+        prompt('Copia este enlace y envíaselo a tu novio:', inviteUrl);
+      }
+    };
+
+    window.exportRecipesJson = function () {
+      const blob = new Blob([JSON.stringify({ recipes: state.recipes, shoppingList: state.shoppingList }, null, 2)], {
+        type: 'application/json'
+      });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `sazon-recetario-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+    };
+
+    window.importRecipesJson = function (event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          const list = Array.isArray(data) ? data : data.recipes || [];
+          for (const r of list) {
+            if (r.title) await saveRecipeRecord({ ...r, id: r.id || 'rec-' + Date.now() + Math.random() });
+          }
+          showToast(`${list.length} recetas importadas correctamente`);
+        } catch {
+          showToast('Archivo JSON no válido');
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    // -----------------------------------------------------------------------
+    // 10. HELPERS & BOOTSTRAP
+    // -----------------------------------------------------------------------
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById('toastBanner');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.add('hidden'), 3400);
+    }
+
+    // Start app
+    renderCategoryChips();
+    initStorageEngine();
+  </script>
+</body>
+</html>
